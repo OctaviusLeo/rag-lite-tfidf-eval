@@ -1,0 +1,9 @@
+Reinforcement learning (RL) is a learning paradigm where an agent interacts with an environment, receives rewards, and learns a policy to maximize expected return.
+
+In robotics, a common control loop is sense -> perceive -> plan/control -> act. Perception can use cameras, lidar, or other sensors to estimate state.
+
+TF-IDF is a retrieval technique that weights terms by frequency in a document and rarity across the corpus. It is often used as a baseline for information retrieval.
+
+A resume project is stronger when it includes a reproducible setup, clear results, and concrete metrics (latency, accuracy, success rate).
+
+A common evaluation metric for retrieval is Recall@K: whether a relevant passage appears in the top K retrieved results.

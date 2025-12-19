@@ -1,0 +1,28 @@
+from __future__ import annotations
+import argparse
+import pickle
+import os
+
+from rag import retrieve
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--index", default="outputs/index.pkl")
+    parser.add_argument("--q", required=True)
+    parser.add_argument("--k", type=int, default=3)
+    args = parser.parse_args()
+
+    if not os.path.exists(args.index):
+        raise FileNotFoundError(f"Missing index: {args.index} (run build_index.py first)")
+
+    with open(args.index, "rb") as f:
+        index = pickle.load(f)
+
+    hits = retrieve(index, args.q, k=args.k)
+    for rank, (i, score, passage) in enumerate(hits, start=1):
+        print(f"#{rank} score={score:.3f} passage_id={i}")
+        print(passage)
+        print("-" * 60)
+
+if __name__ == "__main__":
+    main()
