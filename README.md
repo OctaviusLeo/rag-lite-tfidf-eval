@@ -1,5 +1,4 @@
 # RAG-Lite — TF-IDF Retrieval + Simple Evaluation
-
 A minimal **retrieval + evaluation** scaffold that works without any external model APIs.
 Use it as a clean engineering baseline, then swap in embeddings + an LLM later.
 
@@ -20,7 +19,7 @@ python src/query.py --q "What is reinforcement learning?"
 python src/evaluate.py
 ```
 
-## What to upgrade next (resume upgrades)
+## Future Features
 - Replace TF-IDF with embeddings + ANN index (FAISS), add latency benchmarks
 - Add reranking and ablations (retrieval-only vs retrieval+rerrank)
 - Add offline evaluation harness and error analysis notebook
