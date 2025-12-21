@@ -1,3 +1,5 @@
+# io_utils.py
+# Utility functions for reading and writing text files
 from __future__ import annotations
 from pathlib import Path
 

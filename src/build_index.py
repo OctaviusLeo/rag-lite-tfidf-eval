@@ -1,3 +1,5 @@
+# build_index.py
+# This script builds an index from a text file and saves it to a pickle file.
 from __future__ import annotations
 import argparse
 import pickle

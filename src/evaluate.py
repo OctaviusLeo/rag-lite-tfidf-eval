@@ -1,3 +1,5 @@
+# evaluate.py
+# This script evaluates the recall of a retrieval system using a pre-built index and a set of evaluation queries.
 from __future__ import annotations
 import json
 import argparse

@@ -1,3 +1,5 @@
+# query.py
+# This script provides a command-line interface for querying a retrieval-based answer generation (RAG) model using a pre-built index.
 from __future__ import annotations
 import argparse
 import pickle

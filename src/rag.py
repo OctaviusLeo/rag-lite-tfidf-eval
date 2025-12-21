@@ -1,3 +1,5 @@
+# rag.py
+# This file contains the implementation of the Retrieval-Augmented Generation (RAG) model.
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Tuple
