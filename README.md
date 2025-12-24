@@ -2,6 +2,8 @@
 A minimal **retrieval + evaluation** scaffold that works without any external model APIs.
 Use it as a clean engineering baseline, then swap in embeddings + an LLM later.
 
+Demo: 
+
 ## Quickstart
 ```bash
 python -m venv .venv
