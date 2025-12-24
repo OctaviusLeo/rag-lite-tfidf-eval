@@ -1,6 +1,6 @@
 # RAG-Lite — TF-IDF Retrieval + Simple Evaluation
 A minimal **retrieval + evaluation** scaffold that works without any external model APIs.
-Use it as a clean engineering baseline, then swap in embeddings + an LLM later.
+For now, a clean engineering baseline, then swap in embeddings + an LLM later.
 
 Demo: 
 
