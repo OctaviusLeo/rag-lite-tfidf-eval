@@ -31,6 +31,9 @@ python src/query.py --q "What is reinforcement learning?" --k 3
 
 # Run a tiny eval set (Recall@K)
 python src/evaluate.py --k 3
+
+# One-shot quickstart (build -> query -> eval -> summary)
+python src/run_quickstart.py --k 3 --summary outputs/quickstart_summary.txt
 ```
 
 ## File map
