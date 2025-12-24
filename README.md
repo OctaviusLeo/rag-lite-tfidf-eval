@@ -1,8 +1,10 @@
 # RAG-Lite — TF-IDF Retrieval + Simple Evaluation
 Minimal retrieval baseline: build a TF-IDF index over passages, query it, and score Recall@K on a tiny eval set. No external model APIs required.
 
+![Demo](assets/Demo.png)
+
 Demo: 
-![alt text]({Demo}.png)
+
 
 ## What’s included
 - TF-IDF indexing and retrieval ([src/rag.py](src/rag.py))
