@@ -12,16 +12,33 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--docs", default="data/docs.txt")
     parser.add_argument("--out", default="outputs/index.pkl")
+    parser.add_argument("--bm25", action="store_true", help="Include BM25 for hybrid retrieval")
+    parser.add_argument("--embeddings", action="store_true", help="Include dense embeddings")
+    parser.add_argument("--reranker", action="store_true", help="Load cross-encoder reranker")
     args = parser.parse_args()
 
     os.makedirs("outputs", exist_ok=True)
     corpus = read_text(args.docs)
-    index = build_index(corpus)
+    
+    print("Building index...")
+    if args.bm25:
+        print("  ✓ BM25 enabled")
+    if args.embeddings:
+        print("  ✓ Dense embeddings enabled")
+    if args.reranker:
+        print("  ✓ Reranker enabled")
+    
+    index = build_index(
+        corpus,
+        use_bm25=args.bm25,
+        use_embeddings=args.embeddings,
+        use_reranker=args.reranker
+    )
 
     with open(args.out, "wb") as f:
         pickle.dump(index, f)
 
-    print(f"Saved index: {args.out}")
+    print(f"\nSaved index: {args.out}")
     print(f"Passages: {len(index.passages)}")
 
 if __name__ == "__main__":
