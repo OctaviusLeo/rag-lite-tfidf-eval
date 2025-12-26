@@ -6,9 +6,11 @@ import argparse
 import pickle
 import os
 import math
+import time
 from typing import List, Tuple, Dict, Any
 
 from rag import retrieve
+from benchmark import Benchmark, get_system_info, format_system_info
 
 
 def calculate_mrr_at_k(relevant_rank: int | None, k: int) -> float:
@@ -122,21 +124,39 @@ def main() -> None:
     parser.add_argument("--eval", default="data/eval.jsonl")
     parser.add_argument("--k", type=int, default=3)
     parser.add_argument("--output_dir", default="outputs")
+    parser.add_argument("--benchmark", action="store_true", help="Show detailed performance metrics")
     args = parser.parse_args()
 
     if not os.path.exists(args.index):
         raise FileNotFoundError(f"Missing index: {args.index} (run build_index.py first)")
 
+    if args.benchmark:
+        print(format_system_info(get_system_info()))
+        print()
+
     with open(args.index, "rb") as f:
         index = pickle.load(f)
 
-    # Evaluate all queries
+    # Evaluate all queries with benchmarking
     query_results = []
-    with open(args.eval, "r", encoding="utf-8") as f:
-        for line in f:
-            row = json.loads(line)
-            result = evaluate_query(row["query"], row["relevant_contains"], index, args.k)
-            query_results.append(result)
+    query_times = []
+    
+    with Benchmark("Evaluation", track_memory=True) as bench:
+        with open(args.eval, "r", encoding="utf-8") as f:
+            for line in f:
+                row = json.loads(line)
+                
+                # Measure per-query time if benchmarking
+                if args.benchmark:
+                    query_start = time.time()
+                
+                result = evaluate_query(row["query"], row["relevant_contains"], index, args.k)
+                
+                if args.benchmark:
+                    query_time = time.time() - query_start
+                    query_times.append(query_time)
+                
+                query_results.append(result)
 
     # Aggregate metrics
     total = len(query_results)
@@ -191,6 +211,35 @@ def main() -> None:
     if len(worst_queries) > 10:
         print(f"\n   ... and {len(worst_queries) - 10} more (see {worst_queries_path})")
     print("=" * 60)
+    
+    # Show benchmark results if requested
+    if args.benchmark:
+        result = bench.get_result(num_queries=total)
+        
+        print(f"\n{'=' * 60}")
+        print("PERFORMANCE METRICS")
+        print(f"{'=' * 60}")
+        print(f"Total evaluation time: {result.wall_time:.3f}s")
+        print(f"Queries evaluated: {total}")
+        print(f"Average time per query: {result.wall_time / total * 1000:.2f}ms")
+        
+        if query_times:
+            query_times.sort()
+            print(f"\nPer-query latency:")
+            print(f"  Mean: {sum(query_times) / len(query_times) * 1000:.2f}ms")
+            print(f"  Median: {query_times[len(query_times) // 2] * 1000:.2f}ms")
+            print(f"  P95: {query_times[int(len(query_times) * 0.95)] * 1000:.2f}ms")
+            print(f"  P99: {query_times[int(len(query_times) * 0.99)] * 1000:.2f}ms")
+            print(f"  Min: {min(query_times) * 1000:.2f}ms")
+            print(f"  Max: {max(query_times) * 1000:.2f}ms")
+        
+        if result.memory_used_mb is not None:
+            print(f"\nMemory used: {result.memory_used_mb:.2f} MB")
+        
+        if result.throughput is not None:
+            print(f"Throughput: {result.throughput:.2f} queries/sec")
+        
+        print(f"{'=' * 60}")
 
 
 if __name__ == "__main__":

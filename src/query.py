@@ -6,6 +6,7 @@ import pickle
 import os
 
 from rag import retrieve, retrieve_hybrid, retrieve_grounded
+from benchmark import measure_query_latency, format_latency_table, get_system_info, format_system_info
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -20,6 +21,10 @@ def main() -> None:
                        help="Show grounded results with citations and snippets")
     parser.add_argument("--snippet-length", type=int, default=150,
                        help="Max snippet length for grounded results")
+    parser.add_argument("--benchmark", action="store_true",
+                       help="Measure query latency with multiple trials")
+    parser.add_argument("--num-trials", type=int, default=20,
+                       help="Number of trials for benchmarking (default: 20)")
     args = parser.parse_args()
 
     if not os.path.exists(args.index):
@@ -31,6 +36,34 @@ def main() -> None:
     # Determine if we should use grounded retrieval
     use_grounded = args.grounded or (index.chunks is not None)
     
+    # Run benchmark if requested
+    if args.benchmark:
+        print(format_system_info(get_system_info()))
+        print()
+        
+        # Determine which retrieval function to use
+        if use_grounded and (args.method != "tfidf" or args.rerank or index.chunks):
+            retrieve_fn = lambda idx, q, k: retrieve_grounded(
+                idx, q, k=k, method=args.method, rerank=args.rerank
+            )
+        elif args.method != "tfidf" or args.rerank:
+            retrieve_fn = lambda idx, q, k: retrieve_hybrid(
+                idx, q, k=k, method=args.method, rerank=args.rerank
+            )
+        else:
+            retrieve_fn = retrieve
+        
+        stats = measure_query_latency(
+            index, args.q, args.k, 
+            f"{args.method}{'+rerank' if args.rerank else ''}",
+            retrieve_fn, 
+            num_trials=args.num_trials
+        )
+        
+        print(format_latency_table([stats]))
+        print()
+    
+    # Run actual query and display results
     if use_grounded and (args.method != "tfidf" or args.rerank or index.chunks):
         # Use grounded retrieval with citations
         results = retrieve_grounded(
