@@ -15,6 +15,9 @@ def main() -> None:
     parser.add_argument("--bm25", action="store_true", help="Include BM25 for hybrid retrieval")
     parser.add_argument("--embeddings", action="store_true", help="Include dense embeddings")
     parser.add_argument("--reranker", action="store_true", help="Load cross-encoder reranker")
+    parser.add_argument("--chunking", action="store_true", help="Enable chunking with overlap for grounded retrieval")
+    parser.add_argument("--chunk-size", type=int, default=200, help="Chunk size in characters (default: 200)")
+    parser.add_argument("--overlap", type=int, default=50, help="Overlap between chunks in characters (default: 50)")
     args = parser.parse_args()
 
     os.makedirs("outputs", exist_ok=True)
@@ -27,19 +30,26 @@ def main() -> None:
         print("  ✓ Dense embeddings enabled")
     if args.reranker:
         print("  ✓ Reranker enabled")
+    if args.chunking:
+        print(f"  ✓ Chunking enabled (size={args.chunk_size}, overlap={args.overlap})")
     
     index = build_index(
         corpus,
         use_bm25=args.bm25,
         use_embeddings=args.embeddings,
-        use_reranker=args.reranker
+        use_reranker=args.reranker,
+        use_chunking=args.chunking,
+        chunk_size=args.chunk_size,
+        overlap=args.overlap
     )
 
     with open(args.out, "wb") as f:
         pickle.dump(index, f)
 
     print(f"\nSaved index: {args.out}")
-    print(f"Passages: {len(index.passages)}")
+    print(f"Passages/Chunks: {len(index.passages)}")
+    if index.chunks:
+        print(f"Total chunks: {len(index.chunks)} (from {len(set(c.source_doc_id for c in index.chunks))} source documents)")
 
 if __name__ == "__main__":
     main()

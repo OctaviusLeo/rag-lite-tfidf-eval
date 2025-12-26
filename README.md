@@ -1,5 +1,5 @@
-# RAG-Lite — Hybrid Retrieval + Reranking + Advanced Evaluation
-Production-grade retrieval system with TF-IDF, BM25, dense embeddings, cross-encoder reranking, and comprehensive evaluation metrics. Includes ablation studies comparing retrieval methods. No external APIs required.
+# RAG-Lite — Grounded Retrieval with Chunking + Citations
+Production-grade retrieval system with TF-IDF, BM25, dense embeddings, cross-encoder reranking, **chunking with overlap**, and **citation-grounded results**. Demonstrates proper grounded retrieval without requiring an LLM. Includes comprehensive evaluation metrics and ablation studies.
 
 Demo: 
 ![Demo](assets/Demo-rag.png)
@@ -12,8 +12,16 @@ Demo:
   - Dense embeddings (semantic search via Sentence-BERT)
   - Hybrid fusion (weighted combination)
   - Cross-encoder reranking (ms-marco-MiniLM)
+- **Chunking + Citation Grounding** ([src/rag.py](src/rag.py)):
+  - Configurable chunk size and overlap
+  - Stable citation IDs for each chunk (e.g., `[doc_0_chunk_2]`)
+  - Character-level position tracking
+  - Source document attribution
+  - Snippet generation for display
+  - Grounded retrieval without LLM
 - CLI to build hybrid index ([src/build_index.py](src/build_index.py))
 - CLI to query with multiple methods ([src/query.py](src/query.py))
+- **Grounded retrieval demo** ([src/demo_grounded.py](src/demo_grounded.py))
 - **Ablation study framework** ([src/ablation.py](src/ablation.py)):
   - Compare TF-IDF → BM25 → Embeddings → Hybrid → Hybrid+Rerank
   - Automatic performance comparison table
@@ -62,17 +70,33 @@ python src/query.py --q "What is reinforcement learning?" --k 3
 python src/evaluate.py --k 3
 ```
 
-### Hybrid retrieval + reranking
+### Chunking with citation grounding
 ```bash
-# Build hybrid index with all methods
-python src/build_index.py --bm25 --embeddings --reranker --out outputs/index_hybrid.pkl
+# Build chunked index (200 char chunks, 50 char overlap)
+python src/build_index.py --chunking --chunk-size 200 --overlap 50 --out outputs/index_chunked.pkl
 
-# Query with hybrid method and reranking
-python src/query.py --index outputs/index_hybrid.pkl --q "What is reinforcement learning?" --k 3 --method hybrid --rerank
+# Query with grounded results (shows citations and snippets)
+python src/query.py --index outputs/index_chunked.pkl --q "What is reinforcement learning?" --k 3 --grounded
 
-# Query with specific method
-python src/query.py --index outputs/index_hybrid.pkl --q "What is TF-IDF?" --k 3 --method bm25
-python src/query.py --index outputs/index_hybrid.pkl --q "What is Recall@K?" --k 3 --method embeddings
+# Example output:
+# [Rank #1] [doc_0_chunk_0]
+# Score: 0.4148
+# Source: Document 0
+# Position: chars 0-163
+# Snippet:
+#   Reinforcement learning (RL) is a learning paradigm where an agent...
+```
+
+### Hybrid retrieval + chunking + reranking (full pipeline)
+```bash
+# Build hybrid chunked index with all methods
+python src/build_index.py --chunking --chunk-size 150 --overlap 30 --bm25 --embeddings --reranker --out outputs/index_chunked_hybrid.pkl
+
+# Query with hybrid method and citations
+python src/query.py --index outputs/index_chunked_hybrid.pkl --q "robot perception" --k 3 --method hybrid --grounded
+
+# Run grounded retrieval demo
+python src/demo_grounded.py --index outputs/index_chunked_hybrid.pkl --method hybrid --k 3
 ```
 
 ### Ablation study (compare all methods)
@@ -89,6 +113,45 @@ python src/ablation.py --index outputs/index_hybrid.pkl --k 3
 # hybrid                         1.0000          1.0000
 # hybrid + Rerank                1.0000          1.0000
 ```
+
+## Chunking explained
+
+### Why chunking?
+- **Better granularity**: Long documents split into focused chunks
+- **Overlap prevents splitting**: Context preserved across boundaries
+- **Stable citations**: Each chunk has permanent ID for referencing
+- **Source tracking**: Know which document and position each chunk came from
+- **Grounded retrieval**: Demonstrate proper citation without LLM
+
+### Chunking parameters
+- **chunk_size**: Target size in characters (default: 200)
+- **overlap**: Overlap between consecutive chunks (default: 50)
+- **Sentence boundary detection**: Tries to break at sentence endings
+
+### Example chunking
+```
+Original text (300 chars):
+"Reinforcement learning is... [150 chars] ...maximize reward. Deep RL combines... [150 chars] ...neural networks."
+
+With chunk_size=150, overlap=30:
+- Chunk 0 (chars 0-150): "Reinforcement learning is... maximize reward."
+- Chunk 1 (chars 120-270): "reward. Deep RL combines... neural networks."
+```
+
+## Citation grounding
+
+### Features
+- **Stable IDs**: `[doc_0_chunk_2]` format for permanent reference
+- **Character positions**: Track exact location in source
+- **Source attribution**: Link back to original document
+- **Snippet generation**: Truncated text for display
+- **No LLM required**: Demonstrate grounding with retrieval alone
+
+### Use cases
+1. **Verifiable retrieval**: Each result has traceable citation
+2. **Resume/portfolio projects**: Shows understanding of grounded AI
+3. **RAG preparation**: Foundation for LLM-based systems
+4. **Citation analysis**: Track which sources are most useful
 
 ## Hybrid retrieval explained
 
@@ -113,6 +176,7 @@ The evaluation script generates detailed analysis files in `outputs/`:
 - **per_query_report.jsonl**: Line-by-line metrics for every query
 - **worst_20_queries.json**: Error analysis for targeted improvement
 - **ablation_results.json**: Method comparison data
+- **grounded_demo.txt**: Example grounded retrieval results with citations
 
 Example evaluation output:
 ```
@@ -127,29 +191,26 @@ Precision@3:      0.3333
 ============================================================
 ```
 
-### Ablation study output
+### Grounded output example
 ```
+Query: What is reinforcement learning?
 ======================================================================
-ABLATION STUDY RESULTS
-======================================================================
-Method                         Recall@3        MRR@3
-----------------------------------------------------------------------
-tfidf                          1.0000          1.0000
-bm25                           1.0000          0.8333
-embeddings                     1.0000          1.0000
-hybrid                         1.0000          1.0000
-hybrid + Rerank                1.0000          1.0000
-======================================================================
+Retrieved Information:
 
-Improvements over TF-IDF baseline:
-  Recall@3: +0.0%
-  MRR@3: +0.0%
+[doc_0_chunk_0]
+  Score: 0.6659
+  Source: Document 0
+  Reinforcement learning (RL) is a learning paradigm where an agent...
+
+Citation Summary:
+  [doc_0_chunk_0] - Document 0, chars (0, 150)
 ```
 
 ## File map
-- [src/rag.py](src/rag.py): Multi-method retrieval (TF-IDF, BM25, embeddings, hybrid, reranking)
-- [src/build_index.py](src/build_index.py): Build index with optional hybrid components
-- [src/query.py](src/query.py): CLI for queries with method selection
+- [src/rag.py](src/rag.py): Multi-method retrieval, chunking, citation grounding
+- [src/build_index.py](src/build_index.py): Build index with optional chunking and hybrid components
+- [src/query.py](src/query.py): CLI for queries with method selection and grounded output
+- [src/demo_grounded.py](src/demo_grounded.py): Demo of grounded retrieval with citations
 - [src/ablation.py](src/ablation.py): Ablation study comparing all retrieval methods
 - [src/evaluate.py](src/evaluate.py): Advanced evaluation with MRR@K, nDCG@K, Precision@K, Recall@K
 - [src/io_utils.py](src/io_utils.py): File I/O helpers
@@ -159,20 +220,25 @@ Improvements over TF-IDF baseline:
 - [outputs/per_query_report.jsonl](outputs/per_query_report.jsonl): Detailed per-query metrics (generated)
 - [outputs/worst_20_queries.json](outputs/worst_20_queries.json): Error analysis (generated)
 - [outputs/ablation_results.json](outputs/ablation_results.json): Method comparison (generated)
+- [outputs/grounded_demo.txt](outputs/grounded_demo.txt): Grounded retrieval examples (generated)
 
 ## Architecture
 
 ```
-Query → Retrieval Methods → Score Fusion → (Optional) Reranking → Top-K Results
-         ├─ TF-IDF
-         ├─ BM25
-         └─ Embeddings
+Query → Chunking → Retrieval Methods → Score Fusion → (Optional) Reranking → Grounded Results
+              ↓
+         [doc_X_chunk_Y]
+              ↓
+    Citation + Position Tracking
 ```
 
 ## Notes
 - Index output is written to `outputs/index.pkl` by default (use `--out` to change)
 - Hybrid index includes all methods for fair comparison in ablation studies
-- Passages are split on blank lines; adjust `split_passages` in [src/rag.py](src/rag.py) if needed
+- Chunking is optional; without it, full passages are used
+- Chunk overlap prevents important content from being split
+- Citations are stable across index rebuilds if source documents don't change
 - First run downloads models (~180MB total for embeddings + reranker)
 - Embeddings/reranking add latency but improve quality
 - Use ablation study to identify best method for your use case
+- Grounded retrieval works without LLM, demonstrating proper citation practices
