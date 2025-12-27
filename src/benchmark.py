@@ -1,5 +1,5 @@
 # benchmark.py
-# Utilities for measuring performance: latency, memory, throughput
+# Performance measurement utilities for latency, memory, and throughput analysis.
 from __future__ import annotations
 
 import os

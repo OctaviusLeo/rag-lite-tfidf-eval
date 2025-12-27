@@ -1,4 +1,4 @@
-# RAG-Lite — Production-Grade Retrieval with Performance Benchmarking
+# RAG-Lite: Production-Grade Retrieval with Performance Benchmarking
 
 [![CI](https://github.com/yourusername/rag-lite/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/rag-lite/actions)
 [![codecov](https://codecov.io/gh/yourusername/rag-lite/branch/main/graph/badge.svg)](https://codecov.io/gh/yourusername/rag-lite)
@@ -6,55 +6,51 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
-Complete retrieval system with TF-IDF, BM25, dense embeddings, reranking, chunking, citations, and **comprehensive performance measurement**. Demonstrates proper grounded retrieval with **latency tracking, memory profiling, and scaling analysis**. "I measured it."
+A production-grade retrieval system implementing multiple retrieval methods (TF-IDF, BM25, dense embeddings), cross-encoder reranking, document chunking with stable citations, and comprehensive performance benchmarking. Designed to demonstrate best practices in information retrieval with quantified latency, memory, and throughput metrics.
 
-Demo: 
-![Demo](assets/Demo-rag.png)
+## Overview
 
+### Core Features
 
-## What's included
-- **Multi-method retrieval** ([src/rag.py](src/rag.py)):
-  - TF-IDF (baseline)
-  - BM25 (statistical ranking)
-  - Dense embeddings (semantic search via Sentence-BERT)
-  - Hybrid fusion (weighted combination)
-  - Cross-encoder reranking (ms-marco-MiniLM)
-- **Chunking + Citation Grounding** ([src/rag.py](src/rag.py)):
-  - Configurable chunk size and overlap
-  - Stable citation IDs for each chunk (e.g., `[doc_0_chunk_2]`)
-  - Character-level position tracking
-  - Source document attribution
-  - Snippet generation for display
-- **Performance Benchmarking** ([src/benchmark.py](src/benchmark.py)):
-  - **Latency measurement**: mean, median, P95, P99 query times
-  - **Memory profiling**: track memory usage and peak consumption
-  - **Throughput calculation**: queries/sec, passages/sec
-  - **Index build time**: full pipeline timing
-  - **System info**: CPU, memory, Python version
-  - **Comparison framework**: side-by-side performance analysis
-- CLI to build hybrid index ([src/build_index.py](src/build_index.py))
-- CLI to query with multiple methods ([src/query.py](src/query.py))
-- **Grounded retrieval demo** ([src/demo_grounded.py](src/demo_grounded.py))
-- **Benchmark comparison** ([src/benchmark_comparison.py](src/benchmark_comparison.py))
-- **Ablation study framework** ([src/ablation.py](src/ablation.py)):
-  - Compare TF-IDF → BM25 → Embeddings → Hybrid → Hybrid+Rerank
-  - Automatic performance comparison table
-  - Quantify improvements over baseline
-- **Advanced evaluation harness** ([src/evaluate.py](src/evaluate.py)):
-  - MRR@K (Mean Reciprocal Rank)
-  - nDCG@K (Normalized Discounted Cumulative Gain)
-  - Precision@K
-  - Recall@K
-  - Per-query detailed reports
-  - Worst 20 queries error analysis
-- Sample data: [data/docs.txt](data/docs.txt), [data/eval.jsonl](data/eval.jsonl)
+**Multi-Method Retrieval** ([src/rag.py](src/rag.py))
+- TF-IDF baseline implementation
+- BM25 (Okapi) statistical ranking
+- Dense embeddings using Sentence-BERT (all-MiniLM-L6-v2)
+- Hybrid score fusion with configurable weights
+- Cross-encoder reranking (ms-marco-MiniLM-L-6-v2)
+
+**Document Chunking and Citation Tracking** ([src/rag.py](src/rag.py))
+- Configurable chunk size and overlap parameters
+- Stable citation identifiers (e.g., `[doc_0_chunk_2]`)
+- Character-level position tracking
+- Source document attribution
+- Automated snippet generation
+
+**Performance Benchmarking** ([src/benchmark.py](src/benchmark.py))
+- Latency measurement: mean, median, P95, P99 query times
+- Memory profiling: usage tracking and peak consumption
+- Throughput calculation: queries per second, passages per second
+- Index build time analysis
+- System information capture (CPU, memory, Python version)
+- Cross-method comparison framework
+
+**Evaluation and Analysis**
+- Advanced metrics: MRR@K, nDCG@K, Precision@K, Recall@K ([src/evaluate.py](src/evaluate.py))
+- Ablation study framework for method comparison ([src/ablation.py](src/ablation.py))
+- Per-query detailed reports with error analysis
+- Comprehensive benchmark comparison tool ([src/benchmark_comparison.py](src/benchmark_comparison.py))
+
+**Command-Line Interface**
+- Index building with hybrid components ([src/build_index.py](src/build_index.py))
+- Query execution with multiple retrieval methods ([src/query.py](src/query.py))
+- Grounded retrieval demonstration ([src/demo_grounded.py](src/demo_grounded.py))
 
 ## Requirements
-- Python 3.10+
-- pip
-- Git
+- Python 3.10 or higher
+- pip package manager
+- Git version control
 
-## Setup
+## Installation
 
 Clone the repository:
 ```bash
@@ -186,53 +182,39 @@ python src/ablation.py --index outputs/index_hybrid.pkl --k 3
 # hybrid + Rerank                1.0000          1.0000
 ```
 
-## Performance benchmarking explained
+## Performance Analysis
 
-### What gets measured
+### Metrics Collected
 - **Build time**: Index construction latency
 - **Query latency**: Mean, median, P95, P99 across multiple trials
-- **Memory**: Peak memory usage during indexing/querying
-- **Throughput**: Queries/sec, passages/sec
+- **Memory**: Peak memory usage during indexing and querying
+- **Throughput**: Queries per second, passages per second
 - **Index size**: On-disk storage requirements
-- **System info**: CPU cores, total memory, Python version
+- **System information**: CPU cores, total memory, Python version
 
-### Why it matters
-- **Production readiness**: Know performance characteristics before deployment
-- **Trade-offs**: Understand speed vs quality vs memory
-- **Bottleneck identification**: Find slow components
-- **Capacity planning**: Estimate resource requirements
-- **Optimization targets**: Measure impact of improvements
+### Performance Characteristics
+Speed comparison across retrieval methods:
+- BM25: 0.03ms average (fastest)
+- TF-IDF: 0.70ms average (baseline)
+- Embeddings: 18.68ms average (semantic quality)
+- Hybrid: 21.96ms average (best quality)
 
-### Key findings from benchmarks
-```
-Speed comparison:
-- BM25: 0.03ms avg (fastest)
-- TF-IDF: 0.70ms avg (baseline)
-- Embeddings: 18.68ms avg (semantic quality)
-- Hybrid: 21.96ms avg (best quality)
-
-Memory/storage trade-offs:
+Memory and storage trade-offs:
 - TF-IDF only: 0.01 MB index
 - Hybrid: 174.36 MB index (includes embeddings)
-- 658x speed difference between fastest and slowest
-- 21,000x size difference between smallest and largest
-```
+- 658x speed difference between fastest and slowest methods
+- 21,000x size difference between smallest and largest indices
 
-## Chunking explained
+### Implementation Details
 
-### Why chunking?
-- **Better granularity**: Long documents split into focused chunks
-- **Overlap prevents splitting**: Context preserved across boundaries
-- **Stable citations**: Each chunk has permanent ID for referencing
-- **Source tracking**: Know which document and position each chunk came from
-- **Grounded retrieval**: Demonstrate proper citation without LLM
+**Document Chunking**
+- Configurable chunk size in characters (default: 200)
+- Overlap between consecutive chunks (default: 50)
+- Sentence boundary detection for natural breaks
+- Stable citation identifiers for each chunk
+- Source document and position tracking
 
-### Chunking parameters
-- **chunk_size**: Target size in characters (default: 200)
-- **overlap**: Overlap between consecutive chunks (default: 50)
-- **Sentence boundary detection**: Tries to break at sentence endings
-
-### Example chunking
+Example:
 ```
 Original text (300 chars):
 "Reinforcement learning is... [150 chars] ...maximize reward. Deep RL combines... [150 chars] ...neural networks."
@@ -251,49 +233,31 @@ With chunk_size=150, overlap=30:
 - **Snippet generation**: Truncated text for display
 - **No LLM required**: Demonstrate grounding with retrieval alone
 
-### Use cases
-1. **Verifiable retrieval**: Each result has traceable citation
-2. **Resume/portfolio projects**: Shows understanding of grounded AI
-3. **RAG preparation**: Foundation for LLM-based systems
-4. **Citation analysis**: Track which sources are most useful
-
-## Hybrid retrieval explained
-
-### Methods
-- **TF-IDF**: Classic sparse retrieval, term frequency × inverse document frequency
-- **BM25**: Improved probabilistic ranking function (Okapi BM25)
+**Retrieval Methods**
+- **TF-IDF**: Classic sparse retrieval using term frequency and inverse document frequency
+- **BM25**: Probabilistic ranking function (Okapi BM25) with tuned parameters
 - **Embeddings**: Dense semantic vectors using Sentence-BERT (all-MiniLM-L6-v2)
-- **Hybrid**: Weighted fusion of multiple methods (default: 40% TF-IDF, 30% BM25, 30% embeddings)
-- **Reranking**: Cross-encoder rescores top-K candidates for better precision
+- **Hybrid**: Weighted score fusion (default: 40% TF-IDF, 30% BM25, 30% embeddings)
+- **Reranking**: Cross-encoder rescoring of top-K candidates for improved precision
 
-### Why hybrid?
-- **TF-IDF/BM25**: Fast, interpretable, good for exact matches
-- **Embeddings**: Capture semantic similarity, handle paraphrases
-- **Hybrid**: Combines strengths, more robust than single method
-- **Reranking**: Computationally expensive but highly accurate final ranking
+## Evaluation Framework
 
-## Evaluation outputs
+The evaluation harness generates detailed analysis files in the `outputs/` directory:
 
-### Per-query reports
-The evaluation script generates detailed analysis files in `outputs/`:
-
-- **per_query_report.jsonl**: Line-by-line metrics for every query
+- **per_query_report.jsonl**: Per-query metrics and rankings
 - **worst_20_queries.json**: Error analysis for targeted improvement
 - **ablation_results.json**: Method comparison data
-- **benchmark_comparison.json**: Detailed performance comparison
-- **grounded_demo.txt**: Example grounded retrieval results with citations
+- **benchmark_comparison.json**: Performance comparison across methods
+- **grounded_demo.txt**: Example grounded retrieval with citations
 
 Example evaluation output:
 ```
-============================================================
 EVALUATION RESULTS @ K=3
-============================================================
 Total Queries:     3
 Recall@3:         1.0000
 MRR@3:            1.0000
 nDCG@3:           1.0000
 Precision@3:      0.3333
-============================================================
 
 PERFORMANCE METRICS (with --benchmark):
 Total evaluation time: 0.004s
@@ -302,94 +266,94 @@ Per-query latency: Mean: 1.01ms, P95: 1.65ms
 Memory used: 0.21 MB
 ```
 
-## File map
-- [src/rag.py](src/rag.py): Multi-method retrieval (TF-IDF, BM25, embeddings, hybrid, reranking), chunking, citations
-- [src/benchmark.py](src/benchmark.py): Performance measurement utilities (latency, memory, throughput)
-- [src/build_index.py](src/build_index.py): Build index with optional chunking, hybrid components, and benchmarking
-- [src/query.py](src/query.py): CLI for queries with method selection, grounded output, and latency measurement
-- [src/demo_grounded.py](src/demo_grounded.py): Demo of grounded retrieval with citations
-- [src/benchmark_comparison.py](src/benchmark_comparison.py): Comprehensive performance comparison across methods
-- [src/ablation.py](src/ablation.py): Ablation study comparing all retrieval methods
-- [src/evaluate.py](src/evaluate.py): Advanced evaluation with MRR@K, nDCG@K, Precision@K, Recall@K, and benchmarking
-- [src/io_utils.py](src/io_utils.py): File I/O helpers
-- [data/docs.txt](data/docs.txt): Sample corpus (blank-line separated passages)
-- [data/eval.jsonl](data/eval.jsonl): Sample eval set with `query` and `relevant_contains`
-- [requirements.txt](requirements.txt): Dependencies (numpy, scikit-learn, rank-bm25, sentence-transformers, psutil)
-- [outputs/per_query_report.jsonl](outputs/per_query_report.jsonl): Detailed per-query metrics (generated)
-- [outputs/worst_20_queries.json](outputs/worst_20_queries.json): Error analysis (generated)
-- [outputs/ablation_results.json](outputs/ablation_results.json): Method comparison (generated)
-- [outputs/benchmark_comparison.json](outputs/benchmark_comparison.json): Performance analysis (generated)
-- [outputs/grounded_demo.txt](outputs/grounded_demo.txt): Grounded retrieval examples (generated)
+## Project Structure
+- [src/rag.py](src/rag.py): Core retrieval implementation with multiple methods, chunking, and citation tracking
+- [src/benchmark.py](src/benchmark.py): Performance measurement utilities for latency, memory, and throughput
+- [src/build_index.py](src/build_index.py): Index building with optional chunking and hybrid components
+- [src/query.py](src/query.py): Query interface with method selection and performance measurement
+- [src/demo_grounded.py](src/demo_grounded.py): Demonstration of citation-grounded retrieval
+- [src/benchmark_comparison.py](src/benchmark_comparison.py): Cross-method performance comparison
+- [src/ablation.py](src/ablation.py): Ablation study framework for method analysis
+- [src/evaluate.py](src/evaluate.py): Evaluation harness with multiple metrics and benchmarking
+- [src/io_utils.py](src/io_utils.py): File I/O utilities
+- [data/docs.txt](data/docs.txt): Sample document corpus
+- [data/eval.jsonl](data/eval.jsonl): Evaluation dataset
+- [requirements.txt](requirements.txt): Python dependencies
+- [pyproject.toml](pyproject.toml): Project configuration and build settings
 
-## Architecture
+## System Architecture
 
 ```
-Query → Chunking → Retrieval Methods → Score Fusion → (Optional) Reranking → Grounded Results
-              ↓
-         [doc_X_chunk_Y]
-              ↓
-    Citation + Position Tracking
-              ↓
-    Performance Measurement (Latency, Memory, Throughput)
+Query Processing Pipeline:
+  Query Input
+      ↓
+  Document Chunking (optional)
+      ↓
+  Retrieval Methods (TF-IDF, BM25, Embeddings)
+      ↓
+  Score Fusion (Hybrid)
+      ↓
+  Cross-Encoder Reranking (optional)
+      ↓
+  Grounded Results with Citations
+      ↓
+  Performance Metrics Collection
 ```
 
 ## Development
 
-### Running tests
+### Testing
 ```bash
-# Install dev dependencies
+# Install development dependencies
 pip install -e ".[dev]"
 
-# Run fast tests (excludes slow embedding tests)
+# Run test suite (excludes slow embedding tests)
 pytest tests/ -v -m "not slow"
 
-# Run all tests with coverage
+# Run all tests with coverage report
 pytest tests/ -v --cov=src --cov-report=html
 
-# Run specific test file
+# Run specific test module
 pytest tests/test_retrieval.py -v
 ```
 
-### Code quality
+### Code Quality
 ```bash
-# Format code with black
+# Format code
 black src tests
 
-# Lint with ruff (with auto-fix)
+# Run linter with auto-fix
 ruff check src tests --fix
 
-# Check types (if using mypy)
+# Type checking
 mypy src
 ```
 
 ### Continuous Integration
-The project uses GitHub Actions for CI/CD:
-- **Linting**: Ruff checks code quality
-- **Formatting**: Black verifies code style
-- **Testing**: Pytest runs on Python 3.10, 3.11, 3.12 across Linux, Windows, macOS
-- **Coverage**: Codecov tracks test coverage
-- **Build**: Validates package can be built and distributed
+GitHub Actions workflow includes:
+- Code quality checks (Ruff linting, Black formatting)
+- Multi-platform testing (Linux, Windows, macOS)
+- Multi-version testing (Python 3.10, 3.11, 3.12)
+- Coverage reporting (Codecov integration)
+- Package build validation
 
-See [.github/workflows/ci.yml](.github/workflows/ci.yml) for full CI configuration.
+See [.github/workflows/ci.yml](.github/workflows/ci.yml) for the complete CI configuration.
 
 ### Contributing
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes and add tests
+2. Create a feature branch
+3. Implement changes with corresponding tests
 4. Run tests and linting locally
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+5. Submit a pull request with a clear description
 
-## Notes
-- Index output is written to `outputs/index.pkl` by default (use `--out` to change)
-- Use `--benchmark` flag to measure performance metrics
-- Hybrid index includes all methods for fair comparison in ablation studies
-- Chunking is optional; without it, full passages are used
-- Chunk overlap prevents important content from being split
-- Citations are stable across index rebuilds if source documents don't change
-- First run downloads models (~180MB total for embeddings + reranker)
-- Embeddings/reranking add latency but improve quality (measured!)
-- Use ablation study to identify best method for your use case
-- Use benchmark comparison to understand speed/quality/memory trade-offs
-- "I measured it" - quantify everything for production readiness
+## Technical Notes
+- Index output defaults to `outputs/index.pkl` (configurable with `--out` flag)
+- Performance metrics available via `--benchmark` flag
+- Hybrid index includes all retrieval methods for ablation studies
+- Document chunking is optional (defaults to full passages)
+- Chunk overlap preserves context across boundaries
+- Citation identifiers remain stable across index rebuilds
+- First run downloads pre-trained models (approximately 180MB for embeddings and reranker)
+- Embedding-based methods trade latency for semantic quality
+- Ablation studies help identify optimal method for specific use cases
+- Benchmark comparisons quantify speed, quality, and memory trade-offs

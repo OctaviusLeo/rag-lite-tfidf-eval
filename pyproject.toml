@@ -5,14 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rag-lite"
 version = "0.1.0"
-description = "Production-grade RAG retrieval with TF-IDF, BM25, embeddings, reranking, and performance benchmarking"
+description = "Production-grade retrieval system with multiple methods, performance benchmarking, and citation tracking"
 authors = [
     {name = "Your Name", email = "your.email@example.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
-keywords = ["rag", "retrieval", "information-retrieval", "bm25", "embeddings", "tfidf", "reranking"]
+keywords = ["retrieval", "information-retrieval", "bm25", "embeddings", "tfidf", "reranking", "benchmarking"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",

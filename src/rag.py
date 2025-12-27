@@ -1,5 +1,5 @@
 # rag.py
-# This file contains the implementation of the Retrieval-Augmented Generation (RAG) model.
+# Core retrieval implementation for multi-method information retrieval.
 from __future__ import annotations
 
 import warnings
@@ -15,7 +15,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 @dataclass
 class Chunk:
-    """A chunk of text with metadata for citation and grounding."""
+    """Text chunk with metadata for citation tracking and source attribution."""
 
     chunk_id: str  # Stable identifier (e.g., "doc_0_chunk_0")
     text: str

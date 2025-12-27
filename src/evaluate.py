@@ -1,5 +1,5 @@
 # evaluate.py
-# This script evaluates the recall of a retrieval system using a pre-built index and a set of evaluation queries.
+# Evaluation harness for retrieval system performance measurement.
 from __future__ import annotations
 
 import argparse
@@ -185,7 +185,7 @@ def main() -> None:
     with open(per_query_path, "w", encoding="utf-8") as f:
         for result in query_results:
             f.write(json.dumps(result, ensure_ascii=False) + "\n")
-    print(f"\n✓ Per-query report saved to: {per_query_path}")
+    print(f"\nPer-query report saved to: {per_query_path}")
 
     # Identify and save worst 20 queries (sorted by MRR, then nDCG)
     sorted_by_performance = sorted(
@@ -205,7 +205,7 @@ def main() -> None:
             indent=2,
             ensure_ascii=False,
         )
-    print(f"✓ Worst 20 queries analysis saved to: {worst_queries_path}")
+    print(f"Worst 20 queries analysis saved to: {worst_queries_path}")
 
     # Print summary of worst queries
     print(f"\n{'=' * 60}")

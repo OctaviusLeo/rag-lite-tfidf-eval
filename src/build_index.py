@@ -43,13 +43,13 @@ def main() -> None:
 
     print("Building index...")
     if args.bm25:
-        print("  ✓ BM25 enabled")
+        print("  BM25 enabled")
     if args.embeddings:
-        print("  ✓ Dense embeddings enabled")
+        print("  Dense embeddings enabled")
     if args.reranker:
-        print("  ✓ Reranker enabled")
+        print("  Reranker enabled")
     if args.chunking:
-        print(f"  ✓ Chunking enabled (size={args.chunk_size}, overlap={args.overlap})")
+        print(f"  Chunking enabled (size={args.chunk_size}, overlap={args.overlap})")
 
     # Read corpus
     read_start = time.time()

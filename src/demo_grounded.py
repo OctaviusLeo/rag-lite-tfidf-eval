@@ -102,11 +102,11 @@ def main() -> None:
     print(f"\n{'=' * 70}")
     print(f"Grounded results saved to: {args.output}")
     print("\nKey Features Demonstrated:")
-    print("  ✓ Chunking with overlap for better context")
-    print("  ✓ Stable citation IDs for each chunk")
-    print("  ✓ Character-level position tracking")
-    print("  ✓ Source document attribution")
-    print("  ✓ Grounded retrieval without LLM")
+    print("  - Chunking with overlap for better context")
+    print("  - Stable citation IDs for each chunk")
+    print("  - Character-level position tracking")
+    print("  - Source document attribution")
+    print("  - Grounded retrieval without LLM")
 
 
 if __name__ == "__main__":
