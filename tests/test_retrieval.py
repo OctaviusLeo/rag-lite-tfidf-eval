@@ -48,13 +48,13 @@ def test_bm25_retrieval(hybrid_index):
 @pytest.mark.slow
 def test_embeddings_retrieval(hybrid_index):
     """Test embeddings-based retrieval."""
-    from rag import retrieve
+    from rag import retrieve_hybrid
 
-    results = retrieve(hybrid_index, "machine learning", k=3, method="embeddings")
+    results = retrieve_hybrid(hybrid_index, "machine learning", k=3, method="embeddings")
 
     assert len(results) <= 3
-    assert all("passage_id" in r for r in results)
-    assert all("score" in r for r in results)
+    # Results are tuples (doc_id, score, passage)
+    assert all(len(r) == 3 for r in results)
 
 
 @pytest.mark.slow
@@ -66,14 +66,15 @@ def test_hybrid_retrieval(hybrid_index):
         hybrid_index,
         "deep learning neural networks",
         k=3,
+        method="hybrid",
         tfidf_weight=0.4,
         bm25_weight=0.3,
-        embeddings_weight=0.3,
+        embedding_weight=0.3,
     )
 
     assert len(results) <= 3
-    assert all("passage_id" in r for r in results)
-    assert all("score" in r for r in results)
+    # Results are tuples (doc_id, score, passage)
+    assert all(len(r) == 3 for r in results)
 
 
 def test_chunking(sample_passages):
@@ -177,8 +178,7 @@ def test_index_persistence(tmp_path, sample_passages):
 
 @pytest.mark.slow
 def test_reranker(hybrid_index):
-    """Test cross-encoder reranking."""
-    # Note: The retrieve function doesn't directly expose reranking,
-    # but we can test that the reranker is loaded in hybrid index
-    assert "reranker" in hybrid_index
-    assert hybrid_index["reranker"] is not None
+    """Test cross-encoder reranker is loaded."""
+    # Test that the reranker is loaded in hybrid index
+    assert hasattr(hybrid_index, "reranker")
+    assert hybrid_index.reranker is not None
