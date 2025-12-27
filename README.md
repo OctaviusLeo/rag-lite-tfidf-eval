@@ -1,4 +1,11 @@
 # RAG-Lite — Production-Grade Retrieval with Performance Benchmarking
+
+[![CI](https://github.com/yourusername/rag-lite/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/rag-lite/actions)
+[![codecov](https://codecov.io/gh/yourusername/rag-lite/branch/main/graph/badge.svg)](https://codecov.io/gh/yourusername/rag-lite)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+
 Complete retrieval system with TF-IDF, BM25, dense embeddings, reranking, chunking, citations, and **comprehensive performance measurement**. Demonstrates proper grounded retrieval with **latency tracking, memory profiling, and scaling analysis**. "I measured it."
 
 Demo: 
@@ -55,11 +62,21 @@ git clone <your-repo-url>
 cd rag-lite-tfidf-eval
 ```
 
-Create virtual environment and install dependencies:
+### Production installation
+```bash
+pip install -e .
+```
+
+### Development installation (includes testing and linting tools)
 ```bash
 python -m venv .venv
 # Windows: .venv\Scripts\activate
 # macOS/Linux: source .venv/bin/activate
+pip install -e ".[dev]"
+```
+
+### Manual dependency installation
+```bash
 pip install -r requirements.txt
 ```
 
@@ -315,6 +332,54 @@ Query → Chunking → Retrieval Methods → Score Fusion → (Optional) Reranki
               ↓
     Performance Measurement (Latency, Memory, Throughput)
 ```
+
+## Development
+
+### Running tests
+```bash
+# Install dev dependencies
+pip install -e ".[dev]"
+
+# Run fast tests (excludes slow embedding tests)
+pytest tests/ -v -m "not slow"
+
+# Run all tests with coverage
+pytest tests/ -v --cov=src --cov-report=html
+
+# Run specific test file
+pytest tests/test_retrieval.py -v
+```
+
+### Code quality
+```bash
+# Format code with black
+black src tests
+
+# Lint with ruff (with auto-fix)
+ruff check src tests --fix
+
+# Check types (if using mypy)
+mypy src
+```
+
+### Continuous Integration
+The project uses GitHub Actions for CI/CD:
+- **Linting**: Ruff checks code quality
+- **Formatting**: Black verifies code style
+- **Testing**: Pytest runs on Python 3.10, 3.11, 3.12 across Linux, Windows, macOS
+- **Coverage**: Codecov tracks test coverage
+- **Build**: Validates package can be built and distributed
+
+See [.github/workflows/ci.yml](.github/workflows/ci.yml) for full CI configuration.
+
+### Contributing
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes and add tests
+4. Run tests and linting locally
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
 
 ## Notes
 - Index output is written to `outputs/index.pkl` by default (use `--out` to change)

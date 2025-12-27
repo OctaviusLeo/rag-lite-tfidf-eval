@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import argparse
 import json
 import os
@@ -8,7 +9,9 @@ from io_utils import read_text, write_text
 from rag import build_index, retrieve
 
 
-def run_quickstart(docs: str, index_path: str, eval_path: str, query: str, k: int, summary_path: str) -> None:
+def run_quickstart(
+    docs: str, index_path: str, eval_path: str, query: str, k: int, summary_path: str
+) -> None:
     os.makedirs(os.path.dirname(index_path) or ".", exist_ok=True)
 
     corpus = read_text(docs)
@@ -18,7 +21,7 @@ def run_quickstart(docs: str, index_path: str, eval_path: str, query: str, k: in
     print(f"[1/3] Built index -> {index_path} (passages={len(index.passages)})")
 
     hits = retrieve(index, query, k=k)
-    print(f"[2/3] Query: \"{query}\" (k={k})")
+    print(f'[2/3] Query: "{query}" (k={k})')
     for rank, (pid, score, passage) in enumerate(hits, start=1):
         print(f"  #{rank} score={score:.3f} passage_id={pid}")
         print(f"  {passage}")
@@ -28,7 +31,7 @@ def run_quickstart(docs: str, index_path: str, eval_path: str, query: str, k: in
     hit = 0
     recall = None
     if os.path.exists(eval_path):
-        with open(eval_path, "r", encoding="utf-8") as f:
+        with open(eval_path, encoding="utf-8") as f:
             for line in f:
                 row = json.loads(line)
                 q = row["query"]

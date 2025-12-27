@@ -1,25 +1,26 @@
 # evaluate.py
 # This script evaluates the recall of a retrieval system using a pre-built index and a set of evaluation queries.
 from __future__ import annotations
-import json
-import argparse
-import pickle
-import os
-import math
-import time
-from typing import List, Tuple, Dict, Any
 
+import argparse
+import json
+import math
+import os
+import pickle
+import time
+from typing import Any
+
+from benchmark import Benchmark, format_system_info, get_system_info
 from rag import retrieve
-from benchmark import Benchmark, get_system_info, format_system_info
 
 
 def calculate_mrr_at_k(relevant_rank: int | None, k: int) -> float:
     """Calculate Mean Reciprocal Rank at K.
-    
+
     Args:
         relevant_rank: Position of first relevant document (1-indexed), None if not found
         k: Cut-off rank
-    
+
     Returns:
         Reciprocal rank (0 if not found in top K)
     """
@@ -28,13 +29,13 @@ def calculate_mrr_at_k(relevant_rank: int | None, k: int) -> float:
     return 1.0 / relevant_rank
 
 
-def calculate_ndcg_at_k(relevant_positions: List[int], k: int) -> float:
+def calculate_ndcg_at_k(relevant_positions: list[int], k: int) -> float:
     """Calculate Normalized Discounted Cumulative Gain at K.
-    
+
     Args:
         relevant_positions: List of positions where relevant docs appear (1-indexed)
         k: Cut-off rank
-    
+
     Returns:
         nDCG@K score
     """
@@ -44,11 +45,11 @@ def calculate_ndcg_at_k(relevant_positions: List[int], k: int) -> float:
         if pos <= k:
             # Gain = 1 for relevant, discount by log2(pos + 1)
             dcg += 1.0 / math.log2(pos + 1)
-    
+
     # IDCG (ideal DCG) - assumes all relevant docs are at top
     num_relevant = len([p for p in relevant_positions if p <= k])
     idcg = sum(1.0 / math.log2(i + 2) for i in range(num_relevant))
-    
+
     if idcg == 0:
         return 0.0
     return dcg / idcg
@@ -56,46 +57,46 @@ def calculate_ndcg_at_k(relevant_positions: List[int], k: int) -> float:
 
 def calculate_precision_at_k(num_relevant: int, k: int) -> float:
     """Calculate Precision at K.
-    
+
     Args:
         num_relevant: Number of relevant documents in top K
         k: Cut-off rank
-    
+
     Returns:
         Precision@K score
     """
     return num_relevant / k
 
 
-def evaluate_query(query: str, relevant_contains: str, index: Any, k: int) -> Dict[str, Any]:
+def evaluate_query(query: str, relevant_contains: str, index: Any, k: int) -> dict[str, Any]:
     """Evaluate a single query and return detailed metrics.
-    
+
     Args:
         query: The query string
         relevant_contains: Text that relevant documents must contain
         index: The retrieval index
         k: Number of documents to retrieve
-    
+
     Returns:
         Dictionary with query results and metrics
     """
     hits = retrieve(index, query, k=k)
-    
+
     # Find relevant documents
     relevant_positions = []
     for rank, (doc_id, score, passage) in enumerate(hits, start=1):
         if relevant_contains.lower() in passage.lower():
             relevant_positions.append(rank)
-    
+
     # Calculate metrics
     has_relevant = len(relevant_positions) > 0
     first_relevant_rank = relevant_positions[0] if relevant_positions else None
-    
+
     recall_at_k = 1.0 if has_relevant else 0.0
     mrr_at_k = calculate_mrr_at_k(first_relevant_rank, k)
     ndcg_at_k = calculate_ndcg_at_k(relevant_positions, k)
     precision_at_k = calculate_precision_at_k(len(relevant_positions), k)
-    
+
     return {
         "query": query,
         "relevant_contains": relevant_contains,
@@ -111,10 +112,10 @@ def evaluate_query(query: str, relevant_contains: str, index: Any, k: int) -> Di
                 "doc_id": doc_id,
                 "score": score,
                 "passage": passage[:200],  # Truncate for readability
-                "is_relevant": rank in relevant_positions
+                "is_relevant": rank in relevant_positions,
             }
             for rank, (doc_id, score, passage) in enumerate(hits, start=1)
-        ]
+        ],
     }
 
 
@@ -124,7 +125,9 @@ def main() -> None:
     parser.add_argument("--eval", default="data/eval.jsonl")
     parser.add_argument("--k", type=int, default=3)
     parser.add_argument("--output_dir", default="outputs")
-    parser.add_argument("--benchmark", action="store_true", help="Show detailed performance metrics")
+    parser.add_argument(
+        "--benchmark", action="store_true", help="Show detailed performance metrics"
+    )
     args = parser.parse_args()
 
     if not os.path.exists(args.index):
@@ -140,22 +143,22 @@ def main() -> None:
     # Evaluate all queries with benchmarking
     query_results = []
     query_times = []
-    
+
     with Benchmark("Evaluation", track_memory=True) as bench:
-        with open(args.eval, "r", encoding="utf-8") as f:
+        with open(args.eval, encoding="utf-8") as f:
             for line in f:
                 row = json.loads(line)
-                
+
                 # Measure per-query time if benchmarking
                 if args.benchmark:
                     query_start = time.time()
-                
+
                 result = evaluate_query(row["query"], row["relevant_contains"], index, args.k)
-                
+
                 if args.benchmark:
                     query_time = time.time() - query_start
                     query_times.append(query_time)
-                
+
                 query_results.append(result)
 
     # Aggregate metrics
@@ -186,59 +189,65 @@ def main() -> None:
 
     # Identify and save worst 20 queries (sorted by MRR, then nDCG)
     sorted_by_performance = sorted(
-        query_results, 
-        key=lambda x: (x["mrr@k"], x["ndcg@k"], x["recall@k"])
+        query_results, key=lambda x: (x["mrr@k"], x["ndcg@k"], x["recall@k"])
     )
-    worst_queries = sorted_by_performance[:min(20, len(sorted_by_performance))]
-    
+    worst_queries = sorted_by_performance[: min(20, len(sorted_by_performance))]
+
     worst_queries_path = os.path.join(args.output_dir, "worst_20_queries.json")
     with open(worst_queries_path, "w", encoding="utf-8") as f:
-        json.dump({
-            "description": f"Worst performing queries sorted by MRR@{args.k}, nDCG@{args.k}, Recall@{args.k}",
-            "k": args.k,
-            "worst_queries": worst_queries
-        }, f, indent=2, ensure_ascii=False)
+        json.dump(
+            {
+                "description": f"Worst performing queries sorted by MRR@{args.k}, nDCG@{args.k}, Recall@{args.k}",
+                "k": args.k,
+                "worst_queries": worst_queries,
+            },
+            f,
+            indent=2,
+            ensure_ascii=False,
+        )
     print(f"✓ Worst 20 queries analysis saved to: {worst_queries_path}")
-    
+
     # Print summary of worst queries
     print(f"\n{'=' * 60}")
     print(f"WORST {min(20, len(worst_queries))} QUERIES")
     print("=" * 60)
     for i, result in enumerate(worst_queries[:10], 1):  # Show top 10 in console
         print(f"{i}. Query: {result['query'][:60]}...")
-        print(f"   MRR@{args.k}: {result['mrr@k']:.3f} | nDCG@{args.k}: {result['ndcg@k']:.3f} | Recall@{args.k}: {result['recall@k']:.3f}")
-    
+        print(
+            f"   MRR@{args.k}: {result['mrr@k']:.3f} | nDCG@{args.k}: {result['ndcg@k']:.3f} | Recall@{args.k}: {result['recall@k']:.3f}"
+        )
+
     if len(worst_queries) > 10:
         print(f"\n   ... and {len(worst_queries) - 10} more (see {worst_queries_path})")
     print("=" * 60)
-    
+
     # Show benchmark results if requested
     if args.benchmark:
         result = bench.get_result(num_queries=total)
-        
+
         print(f"\n{'=' * 60}")
         print("PERFORMANCE METRICS")
         print(f"{'=' * 60}")
         print(f"Total evaluation time: {result.wall_time:.3f}s")
         print(f"Queries evaluated: {total}")
         print(f"Average time per query: {result.wall_time / total * 1000:.2f}ms")
-        
+
         if query_times:
             query_times.sort()
-            print(f"\nPer-query latency:")
+            print("\nPer-query latency:")
             print(f"  Mean: {sum(query_times) / len(query_times) * 1000:.2f}ms")
             print(f"  Median: {query_times[len(query_times) // 2] * 1000:.2f}ms")
             print(f"  P95: {query_times[int(len(query_times) * 0.95)] * 1000:.2f}ms")
             print(f"  P99: {query_times[int(len(query_times) * 0.99)] * 1000:.2f}ms")
             print(f"  Min: {min(query_times) * 1000:.2f}ms")
             print(f"  Max: {max(query_times) * 1000:.2f}ms")
-        
+
         if result.memory_used_mb is not None:
             print(f"\nMemory used: {result.memory_used_mb:.2f} MB")
-        
+
         if result.throughput is not None:
             print(f"Throughput: {result.throughput:.2f} queries/sec")
-        
+
         print(f"{'=' * 60}")
 
 
