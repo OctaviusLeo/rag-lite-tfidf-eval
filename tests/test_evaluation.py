@@ -96,7 +96,7 @@ def test_evaluate_query(simple_index, sample_passages):
     query = "reinforcement learning"
     relevant_ids = [0]  # First passage
 
-    metrics = evaluate_query(simple_index, query, relevant_ids, k=3, method="tfidf")
+    metrics = evaluate_query(simple_index, query, relevant_ids, k=3, _method="tfidf")
 
     assert "recall" in metrics
     assert "mrr" in metrics

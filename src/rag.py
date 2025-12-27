@@ -48,8 +48,10 @@ class Index:
     reranker: CrossEncoder | None = None
 
 
-def split_passages(corpus_text: str) -> list[str]:
-    """Split on blank lines (legacy method)."""
+def split_passages(corpus_text: str | list[str]) -> list[str]:
+    """Split on blank lines (legacy method) or pass through if already a list."""
+    if isinstance(corpus_text, list):
+        return corpus_text
     raw = [p.strip() for p in corpus_text.split("\n\n") if p.strip()]
     return raw
 
@@ -135,7 +137,7 @@ def create_chunks_from_passages(
 
 
 def build_index(
-    corpus_text: str,
+    corpus_text: str | list[str],
     use_bm25: bool = False,
     use_embeddings: bool = False,
     use_reranker: bool = False,
@@ -146,7 +148,7 @@ def build_index(
     """Build a retrieval index with optional hybrid methods and chunking.
 
     Args:
-        corpus_text: Raw corpus text with passages separated by blank lines
+        corpus_text: Raw corpus text with passages separated by blank lines, or list of passages
         use_bm25: If True, build BM25 index for hybrid retrieval
         use_embeddings: If True, build dense embedding index
         use_reranker: If True, load a cross-encoder reranker

@@ -14,88 +14,166 @@ from benchmark import Benchmark, format_system_info, get_system_info
 from rag import retrieve
 
 
-def calculate_mrr_at_k(relevant_rank: int | None, k: int) -> float:
+def calculate_mrr_at_k(relevant_ids: list[int], retrieved_ids: list[int]) -> float:
     """Calculate Mean Reciprocal Rank at K.
 
     Args:
-        relevant_rank: Position of first relevant document (1-indexed), None if not found
-        k: Cut-off rank
+        relevant_ids: List of relevant document IDs
+        retrieved_ids: List of retrieved document IDs (in ranked order)
 
     Returns:
-        Reciprocal rank (0 if not found in top K)
+        Reciprocal rank of first relevant document (0 if not found)
     """
-    if relevant_rank is None or relevant_rank > k:
+    if not relevant_ids or not retrieved_ids:
         return 0.0
-    return 1.0 / relevant_rank
+
+    relevant_set = set(relevant_ids)
+    for rank, doc_id in enumerate(retrieved_ids, start=1):
+        if doc_id in relevant_set:
+            return 1.0 / rank
+    return 0.0
 
 
-def calculate_ndcg_at_k(relevant_positions: list[int], k: int) -> float:
+def calculate_ndcg_at_k(relevant_ids: list[int], retrieved_ids: list[int]) -> float:
     """Calculate Normalized Discounted Cumulative Gain at K.
 
     Args:
-        relevant_positions: List of positions where relevant docs appear (1-indexed)
-        k: Cut-off rank
+        relevant_ids: List of relevant document IDs
+        retrieved_ids: List of retrieved document IDs (in ranked order)
 
     Returns:
         nDCG@K score
     """
+    if not relevant_ids or not retrieved_ids:
+        return 0.0
+
+    relevant_set = set(relevant_ids)
+
     # DCG calculation
     dcg = 0.0
-    for pos in relevant_positions:
-        if pos <= k:
-            # Gain = 1 for relevant, discount by log2(pos + 1)
-            dcg += 1.0 / math.log2(pos + 1)
+    for rank, doc_id in enumerate(retrieved_ids, start=1):
+        if doc_id in relevant_set:
+            dcg += 1.0 / math.log2(rank + 1)
 
-    # IDCG (ideal DCG) - assumes all relevant docs are at top
-    num_relevant = len([p for p in relevant_positions if p <= k])
-    idcg = sum(1.0 / math.log2(i + 2) for i in range(num_relevant))
+    # IDCG (ideal DCG) - assumes all relevant docs at top
+    k = len(retrieved_ids)
+    num_relevant_in_k = min(len(relevant_ids), k)
+    idcg = sum(1.0 / math.log2(i + 2) for i in range(num_relevant_in_k))
 
     if idcg == 0:
         return 0.0
     return dcg / idcg
 
 
-def calculate_precision_at_k(num_relevant: int, k: int) -> float:
+def calculate_precision_at_k(relevant_ids: list[int], retrieved_ids: list[int]) -> float:
     """Calculate Precision at K.
 
     Args:
-        num_relevant: Number of relevant documents in top K
-        k: Cut-off rank
+        relevant_ids: List of relevant document IDs
+        retrieved_ids: List of retrieved document IDs
 
     Returns:
         Precision@K score
     """
-    return num_relevant / k
+    if not retrieved_ids:
+        return 0.0
+
+    relevant_set = set(relevant_ids)
+    retrieved_set = set(retrieved_ids)
+    num_relevant_retrieved = len(relevant_set & retrieved_set)
+    return num_relevant_retrieved / len(retrieved_ids)
 
 
-def evaluate_query(query: str, relevant_contains: str, index: Any, k: int) -> dict[str, Any]:
+def calculate_recall_at_k(relevant_ids: list[int], retrieved_ids: list[int]) -> float:
+    """Calculate Recall at K.
+
+    Args:
+        relevant_ids: List of relevant document IDs
+        retrieved_ids: List of retrieved document IDs
+
+    Returns:
+        Recall@K score (proportion of relevant docs retrieved)
+    """
+    if not relevant_ids:
+        return 0.0
+
+    relevant_set = set(relevant_ids)
+    retrieved_set = set(retrieved_ids)
+    num_relevant_retrieved = len(relevant_set & retrieved_set)
+    return num_relevant_retrieved / len(relevant_set)
+
+
+def evaluate_query(
+    index: Any, query: str, relevant_ids: list[int], k: int, _method: str = "tfidf"
+) -> dict[str, Any]:
     """Evaluate a single query and return detailed metrics.
 
     Args:
-        query: The query string
-        relevant_contains: Text that relevant documents must contain
         index: The retrieval index
+        query: The query string
+        relevant_ids: List of relevant document IDs
         k: Number of documents to retrieve
+        _method: Retrieval method to use (ignored, kept for backwards compatibility)
 
     Returns:
         Dictionary with query results and metrics
     """
     hits = retrieve(index, query, k=k)
 
-    # Find relevant documents
+    # Extract document IDs from results (tuples of (doc_id, score, passage))
+    retrieved_ids = [doc_id for doc_id, _score, _passage in hits]
+
+    # Calculate metrics
+    recall = calculate_recall_at_k(relevant_ids, retrieved_ids)
+    mrr = calculate_mrr_at_k(relevant_ids, retrieved_ids)
+    ndcg = calculate_ndcg_at_k(relevant_ids, retrieved_ids)
+    precision = calculate_precision_at_k(relevant_ids, retrieved_ids)
+
+    return {
+        "query": query,
+        "relevant_ids": relevant_ids,
+        "retrieved_ids": retrieved_ids,
+        "recall": recall,
+        "mrr": mrr,
+        "ndcg": ndcg,
+        "precision": precision,
+    }
+
+
+def evaluate_query_with_pattern(
+    query: str, relevant_contains: str, index: Any, k: int
+) -> dict[str, Any]:
+    """Evaluate a single query using text pattern matching (legacy API).
+
+    Args:
+        query: The query string
+        relevant_contains: Text pattern that relevant documents must contain
+        index: The retrieval index
+        k: Number of documents to retrieve
+
+    Returns:
+        Dictionary with query results and metrics (keys with @k suffix)
+    """
+    hits = retrieve(index, query, k=k)
+
+    # Find relevant documents by text pattern
     relevant_positions = []
     for rank, (_doc_id, _score, passage) in enumerate(hits, start=1):
         if relevant_contains.lower() in passage.lower():
             relevant_positions.append(rank)
 
-    # Calculate metrics
+    # Calculate metrics using positions
     has_relevant = len(relevant_positions) > 0
     first_relevant_rank = relevant_positions[0] if relevant_positions else None
 
     recall_at_k = 1.0 if has_relevant else 0.0
-    mrr_at_k = calculate_mrr_at_k(first_relevant_rank, k)
-    ndcg_at_k = calculate_ndcg_at_k(relevant_positions, k)
-    precision_at_k = calculate_precision_at_k(len(relevant_positions), k)
+    mrr_at_k = 1.0 / first_relevant_rank if first_relevant_rank else 0.0
+
+    # For nDCG and Precision, use position-based calculation
+    dcg = sum(1.0 / math.log2(pos + 1) for pos in relevant_positions)
+    idcg = sum(1.0 / math.log2(i + 2) for i in range(min(len(relevant_positions), k)))
+    ndcg_at_k = dcg / idcg if idcg > 0 else 0.0
+    precision_at_k = len(relevant_positions) / k
 
     return {
         "query": query,
@@ -110,8 +188,8 @@ def evaluate_query(query: str, relevant_contains: str, index: Any, k: int) -> di
             {
                 "rank": rank,
                 "doc_id": doc_id,
-                "score": score,
-                "passage": passage[:200],  # Truncate for readability
+                "score": float(score),
+                "passage": passage[:200],
                 "is_relevant": rank in relevant_positions,
             }
             for rank, (doc_id, score, passage) in enumerate(hits, start=1)
@@ -155,7 +233,9 @@ def main() -> None:
             if args.benchmark:
                 query_start = time.time()
 
-            result = evaluate_query(row["query"], row["relevant_contains"], index, args.k)
+            result = evaluate_query_with_pattern(
+                row["query"], row["relevant_contains"], index, args.k
+            )
 
             if args.benchmark:
                 query_time = time.time() - query_start

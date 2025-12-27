@@ -58,7 +58,7 @@ Demo:
 
 Clone the repository:
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/OctaviusLeo/rag-lite-tfidf-eval.git
 cd rag-lite-tfidf-eval
 ```
 
