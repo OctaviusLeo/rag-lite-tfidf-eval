@@ -45,7 +45,7 @@ def evaluate_method(
 
             # Check for relevant documents
             relevant_rank = None
-            for rank, (doc_id, score, passage) in enumerate(hits, start=1):
+            for rank, (_doc_id, _score, passage) in enumerate(hits, start=1):
                 if relevant_contains.lower() in passage.lower():
                     if relevant_rank is None:
                         relevant_rank = rank

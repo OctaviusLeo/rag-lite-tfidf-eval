@@ -83,7 +83,7 @@ def main() -> None:
     print(f"Output: {args.out}")
     print(f"Passages/Chunks: {len(index.passages)}")
     if index.chunks:
-        num_source_docs = len(set(c.source_doc_id for c in index.chunks))
+        num_source_docs = len({c.source_doc_id for c in index.chunks})
         print(f"Total chunks: {len(index.chunks)} (from {num_source_docs} source documents)")
 
     if args.benchmark:

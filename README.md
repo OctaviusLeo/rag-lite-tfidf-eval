@@ -1,12 +1,16 @@
 # RAG-Lite: Production-Grade Retrieval with Performance Benchmarking
 
-[![CI](https://github.com/yourusername/rag-lite/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/rag-lite/actions)
-[![codecov](https://codecov.io/gh/yourusername/rag-lite/branch/main/graph/badge.svg)](https://codecov.io/gh/yourusername/rag-lite)
+[![CI](https://github.com/OctaviusLeo/rag-lite/actions/workflows/ci.yml/badge.svg)](https://github.com/OctaviusLeo/rag-lite/actions)
+[![codecov](https://codecov.io/gh/OctaviusLeo/rag-lite/branch/main/graph/badge.svg)](https://codecov.io/gh/OctaviusLeo/rag-lite)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 A production-grade retrieval system implementing multiple retrieval methods (TF-IDF, BM25, dense embeddings), cross-encoder reranking, document chunking with stable citations, and comprehensive performance benchmarking. Designed to demonstrate best practices in information retrieval with quantified latency, memory, and throughput metrics.
+
+Demo:
+
+![Demo RAG](assets/Demo-rag.png)
 
 ## Overview
 

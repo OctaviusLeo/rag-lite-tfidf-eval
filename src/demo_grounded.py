@@ -73,7 +73,7 @@ def main() -> None:
         print("Warning: Index does not have chunking enabled. Citations will be basic.")
     else:
         print(
-            f"Index loaded: {len(index.chunks)} chunks from {len(set(c.source_doc_id for c in index.chunks))} documents"
+            f"Index loaded: {len(index.chunks)} chunks from {len({c.source_doc_id for c in index.chunks})} documents"
         )
 
     print(f"\nRunning {len(args.queries)} queries with method: {args.method}")

@@ -57,13 +57,15 @@ def main() -> None:
 
         # Determine which retrieval function to use
         if use_grounded and (args.method != "tfidf" or args.rerank or index.chunks):
-            retrieve_fn = lambda idx, q, k: retrieve_grounded(
-                idx, q, k=k, method=args.method, rerank=args.rerank
-            )
+
+            def retrieve_fn(idx, q, k):
+                return retrieve_grounded(idx, q, k=k, method=args.method, rerank=args.rerank)
+
         elif args.method != "tfidf" or args.rerank:
-            retrieve_fn = lambda idx, q, k: retrieve_hybrid(
-                idx, q, k=k, method=args.method, rerank=args.rerank
-            )
+
+            def retrieve_fn(idx, q, k):
+                return retrieve_hybrid(idx, q, k=k, method=args.method, rerank=args.rerank)
+
         else:
             retrieve_fn = retrieve
 

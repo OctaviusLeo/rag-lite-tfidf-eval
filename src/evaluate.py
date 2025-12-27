@@ -84,7 +84,7 @@ def evaluate_query(query: str, relevant_contains: str, index: Any, k: int) -> di
 
     # Find relevant documents
     relevant_positions = []
-    for rank, (doc_id, score, passage) in enumerate(hits, start=1):
+    for rank, (_doc_id, _score, passage) in enumerate(hits, start=1):
         if relevant_contains.lower() in passage.lower():
             relevant_positions.append(rank)
 
@@ -144,22 +144,24 @@ def main() -> None:
     query_results = []
     query_times = []
 
-    with Benchmark("Evaluation", track_memory=True) as bench:
-        with open(args.eval, encoding="utf-8") as f:
-            for line in f:
-                row = json.loads(line)
+    with (
+        Benchmark("Evaluation", track_memory=True) as bench,
+        open(args.eval, encoding="utf-8") as f,
+    ):
+        for line in f:
+            row = json.loads(line)
 
-                # Measure per-query time if benchmarking
-                if args.benchmark:
-                    query_start = time.time()
+            # Measure per-query time if benchmarking
+            if args.benchmark:
+                query_start = time.time()
 
-                result = evaluate_query(row["query"], row["relevant_contains"], index, args.k)
+            result = evaluate_query(row["query"], row["relevant_contains"], index, args.k)
 
-                if args.benchmark:
-                    query_time = time.time() - query_start
-                    query_times.append(query_time)
+            if args.benchmark:
+                query_time = time.time() - query_start
+                query_times.append(query_time)
 
-                query_results.append(result)
+            query_results.append(result)
 
     # Aggregate metrics
     total = len(query_results)

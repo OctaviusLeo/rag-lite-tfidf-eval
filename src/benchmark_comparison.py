@@ -74,11 +74,14 @@ def run_comparison(
             for query in queries:
                 # Determine retrieval function
                 if method_type == "tfidf_legacy":
-                    retrieve_fn = lambda idx, q, k_val: retrieve(idx, q, k=k_val)
+
+                    def retrieve_fn(idx, q, k_val):
+                        return retrieve(idx, q, k=k_val)
+
                 else:
-                    retrieve_fn = lambda idx, q, k_val: retrieve_hybrid(
-                        idx, q, k=k_val, method=method_type, rerank=rerank
-                    )
+
+                    def retrieve_fn(idx, q, k_val, method=method_type, rerank_val=rerank):
+                        return retrieve_hybrid(idx, q, k=k_val, method=method, rerank=rerank_val)
 
                 stats = measure_query_latency(
                     index, query, k, method_name, retrieve_fn, num_warmup=5, num_trials=num_trials

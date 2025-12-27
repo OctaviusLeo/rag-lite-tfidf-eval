@@ -113,6 +113,8 @@ extend-exclude = '''
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+
+[tool.ruff.lint]
 select = [
     "E",   # pycodestyle errors
     "W",   # pycodestyle warnings
@@ -131,10 +133,10 @@ ignore = [
     "B904",  # raise from None
 ]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "tests/*" = ["ARG", "N802"]  # Allow unused args and non-lowercase names in tests
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["src"]
 force-single-line = false
 lines-after-imports = 2

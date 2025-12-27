@@ -40,7 +40,7 @@ class Chunk:
 class Index:
     vectorizer: TfidfVectorizer
     passages: list[str]
-    X: np.ndarray  # TF-IDF matrix
+    tfidf_matrix: np.ndarray  # TF-IDF matrix
     chunks: list[Chunk] | None = None  # Chunk metadata for grounding
     bm25: BM25Okapi | None = None
     embedder: SentenceTransformer | None = None
@@ -173,7 +173,7 @@ def build_index(
 
     # TF-IDF (always included as baseline)
     vec = TfidfVectorizer(stop_words="english", ngram_range=(1, 2), max_features=5000)
-    X = vec.fit_transform(index_texts)
+    tfidf_matrix = vec.fit_transform(index_texts)
 
     # Optional: BM25
     bm25 = None
@@ -202,7 +202,7 @@ def build_index(
     return Index(
         vectorizer=vec,
         passages=index_texts,  # Now contains chunks if chunking is enabled
-        X=X,
+        tfidf_matrix=tfidf_matrix,
         chunks=chunks,
         bm25=bm25,
         embedder=embedder,
@@ -214,7 +214,7 @@ def build_index(
 def retrieve(index: Index, query: str, k: int = 3) -> list[tuple[int, float, str]]:
     """Simple TF-IDF retrieval (backward compatible)."""
     q = index.vectorizer.transform([query])
-    sims = cosine_similarity(q, index.X).ravel()
+    sims = cosine_similarity(q, index.tfidf_matrix).ravel()
     top = np.argsort(-sims)[:k]
     return [(int(i), float(sims[i]), index.passages[int(i)]) for i in top]
 
@@ -251,7 +251,7 @@ def retrieve_hybrid(
     if method == "tfidf":
         # TF-IDF only
         q = index.vectorizer.transform([query])
-        scores = cosine_similarity(q, index.X).ravel()
+        scores = cosine_similarity(q, index.tfidf_matrix).ravel()
 
     elif method == "bm25":
         # BM25 only
@@ -278,7 +278,7 @@ def retrieve_hybrid(
 
         # TF-IDF component
         q = index.vectorizer.transform([query])
-        tfidf_scores = cosine_similarity(q, index.X).ravel()
+        tfidf_scores = cosine_similarity(q, index.tfidf_matrix).ravel()
         scores += tfidf_weight * tfidf_scores
 
         # BM25 component (if available)
@@ -347,7 +347,7 @@ class GroundedResult:
     source_doc_id: int | None = None
     char_range: tuple[int, int] | None = None
 
-    def format_result(self, include_citation: bool = True, snippet_length: int = 150) -> str:
+    def format_result(self, include_citation: bool = True) -> str:
         """Format the result for display."""
         lines = []
         if include_citation:

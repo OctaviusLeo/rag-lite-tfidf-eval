@@ -180,11 +180,6 @@ def test_index_persistence(tmp_path, sample_passages):
 @pytest.mark.slow
 def test_reranker(hybrid_index):
     """Test cross-encoder reranking."""
-    from rag import retrieve
-
-    # Get results without reranking
-    results_no_rerank = retrieve(hybrid_index, "deep learning", k=3, method="tfidf")
-
     # Note: The retrieve function doesn't directly expose reranking,
     # but we can test that the reranker is loaded in hybrid index
     assert "reranker" in hybrid_index
