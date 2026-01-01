@@ -10,6 +10,31 @@ RAG‑Lite is a compact, production‑style retrieval stack: multiple retrieval 
 
 This repo is optimized for demonstrating real engineering trade‑offs (quality vs latency vs memory) with reproducible metrics.
 
+## Table of Contents
+
+- [Overview (features & modules)](#core-features)
+- [Setup (requirements & installation)](#requirements)
+- [Quickstart](#quickstart)
+  - [More examples](#basic-usage-tf-idf-only)
+    - [Basic usage](#basic-usage-tf-idf-only)
+    - [Performance benchmarking](#performance-benchmarking)
+    - [Benchmark comparison](#comprehensive-benchmark-comparison)
+    - [Chunking with grounding](#chunking-with-citation-grounding)
+    - [Hybrid + reranking](#hybrid-retrieval--chunking--reranking-full-pipeline)
+    - [Ablation study](#ablation-study-compare-all-methods)
+- [Reference: Performance & Evaluation](#performance-analysis)
+  - [Performance Analysis](#performance-analysis)
+  - [Citation Grounding](#citation-grounding)
+  - [Evaluation Framework](#evaluation-framework)
+- [Reference: Project Structure](#project-structure)
+  - [System Architecture](#system-architecture)
+- [Development](#development)
+  - [Testing](#testing)
+  - [Code Quality](#code-quality)
+- [Troubleshooting](#troubleshooting)
+  - [CI & Contributing](#continuous-integration)
+  - [Technical Notes](#technical-notes)
+
 Demo:
 
 ![Demo RAG](assets/Demo-rag.png)
