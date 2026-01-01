@@ -44,6 +44,8 @@ This repo is optimized for demonstrating real engineering trade‑offs (quality 
 <details>
 <summary><strong>Overview (features & modules)</strong></summary>
 
+---
+
 ### Core Features
 
 **Multi-Method Retrieval** ([src/rag.py](src/rag.py))
