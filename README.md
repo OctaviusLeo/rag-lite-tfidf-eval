@@ -41,6 +41,8 @@ This repo is optimized for demonstrating real engineering trade‑offs (quality 
 
 ![Demo RAG](assets/Demo-rag.png)
 
+---
+
 <details>
 <summary><strong>Overview (features & modules)</strong></summary>
 
