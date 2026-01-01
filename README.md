@@ -35,7 +35,9 @@ This repo is optimized for demonstrating real engineering trade‑offs (quality 
   - [CI & Contributing](#continuous-integration)
   - [Technical Notes](#technical-notes)
 
-Demo:
+---
+
+### Demo
 
 ![Demo RAG](assets/Demo-rag.png)
 
