@@ -1,4 +1,4 @@
-# RAG-Lite: Production-Grade Retrieval with Performance Benchmarking
+# RAG‑Lite: Retrieval System + Benchmarks (TF‑IDF, BM25, Embeddings, Reranking)
 
 [![CI](https://github.com/OctaviusLeo/rag-lite-tfidf-eval/actions/workflows/ci.yml/badge.svg)](https://github.com/OctaviusLeo/rag-lite-tfidf-eval/actions)
 [![codecov](https://codecov.io/gh/OctaviusLeo/rag-lite-tfidf-eval/branch/main/graph/badge.svg)](https://codecov.io/gh/OctaviusLeo/rag-lite-tfidf-eval)
@@ -6,13 +6,16 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
-A production-grade retrieval system implementing multiple retrieval methods (TF-IDF, BM25, dense embeddings), cross-encoder reranking, document chunking with stable citations, and comprehensive performance benchmarking. Designed to demonstrate best practices in information retrieval with quantified latency, memory, and throughput metrics.
+RAG‑Lite is a compact, production‑style retrieval stack: multiple retrieval methods (TF‑IDF, BM25, dense embeddings), optional cross‑encoder reranking, chunking with stable citations, and an evaluation + benchmarking harness.
+
+This repo is optimized for demonstrating real engineering trade‑offs (quality vs latency vs memory) with reproducible metrics.
 
 Demo:
 
 ![Demo RAG](assets/Demo-rag.png)
 
-## Overview
+<details>
+<summary><strong>Overview (features & modules)</strong></summary>
 
 ### Core Features
 
@@ -25,7 +28,7 @@ Demo:
 
 **Document Chunking and Citation Tracking** ([src/rag.py](src/rag.py))
 - Configurable chunk size and overlap parameters
-- Stable citation identifiers (e.g., `[doc_0_chunk_2]`)
+- Stable citation identifiers (`[doc_0_chunk_2]`)
 - Character-level position tracking
 - Source document attribution
 - Automated snippet generation
@@ -49,6 +52,11 @@ Demo:
 - Query execution with multiple retrieval methods ([src/query.py](src/query.py))
 - Grounded retrieval demonstration ([src/demo_grounded.py](src/demo_grounded.py))
 
+</details>
+
+<details>
+<summary><strong>Setup (requirements & installation)</strong></summary>
+
 ## Requirements
 - Python 3.10 or higher
 - pip package manager
@@ -64,7 +72,7 @@ cd rag-lite-tfidf-eval
 
 ### Production installation
 ```bash
-pip install -e .
+pip install .
 ```
 
 ### Development installation (includes testing and linting tools)
@@ -80,7 +88,28 @@ pip install -e ".[dev]"
 pip install -r requirements.txt
 ```
 
+</details>
+
 ## Quickstart
+
+If you only run one thing, run the TF‑IDF baseline end‑to‑end:
+
+```bash
+python src/build_index.py
+python src/query.py --q "What is reinforcement learning?" --k 3
+python src/evaluate.py --k 3
+```
+
+Tip: The package also exposes console scripts (equivalent to the Python commands):
+
+```bash
+rag-build
+rag-query --q "What is reinforcement learning?" --k 3
+rag-eval --k 3
+```
+
+<details>
+<summary><strong>More examples (benchmarking, chunking, hybrid, ablation)</strong></summary>
 
 ### Basic usage (TF-IDF only)
 ```bash
@@ -136,10 +165,11 @@ python src/benchmark_comparison.py --num-trials 10
 #                           embeddings           18.68              36.12
 #                           hybrid               21.96              41.92
 #
-# KEY INSIGHTS:
-# Fastest: Hybrid / bm25 - 0.03ms avg
-# Slowest: Hybrid / hybrid - 21.96ms avg
-# Speed difference: 658.0x
+# Notes:
+# - The script loads whatever indexes exist under outputs/ (outputs/index.pkl,
+#   outputs/index_hybrid.pkl, outputs/index_chunked.pkl).
+# - If an index does not include embeddings/reranker components, the corresponding
+#   methods will be skipped instead of failing.
 ```
 
 ### Chunking with citation grounding
@@ -171,8 +201,13 @@ python src/query.py --index outputs/index_chunked_hybrid.pkl --q "robot percepti
 python src/demo_grounded.py --index outputs/index_chunked_hybrid.pkl --method hybrid --k 3
 ```
 
+Note: embedding + reranker builds will download pretrained models on first run and can be memory‑heavy.
+
 ### Ablation study (compare all methods)
 ```bash
+# Build a hybrid index (BM25 enabled). Add --embeddings/--reranker if machine supports it.
+python src/build_index.py --bm25 --out outputs/index_hybrid.pkl
+
 # Run ablation study
 python src/ablation.py --index outputs/index_hybrid.pkl --k 3
 
@@ -185,6 +220,11 @@ python src/ablation.py --index outputs/index_hybrid.pkl --k 3
 # hybrid                         1.0000          1.0000
 # hybrid + Rerank                1.0000          1.0000
 ```
+
+</details>
+
+<details>
+<summary><strong>Reference: performance, grounding, evaluation outputs</strong></summary>
 
 ## Performance Analysis
 
@@ -270,6 +310,11 @@ Per-query latency: Mean: 1.01ms, P95: 1.65ms
 Memory used: 0.21 MB
 ```
 
+</details>
+
+<details>
+<summary><strong>Reference: project structure & architecture</strong></summary>
+
 ## Project Structure
 - [src/rag.py](src/rag.py): Core retrieval implementation with multiple methods, chunking, and citation tracking
 - [src/benchmark.py](src/benchmark.py): Performance measurement utilities for latency, memory, and throughput
@@ -304,6 +349,11 @@ Query Processing Pipeline:
   Performance Metrics Collection
 ```
 
+</details>
+
+<details>
+<summary><strong>Development</strong></summary>
+
 ## Development
 
 ### Testing
@@ -329,9 +379,34 @@ black src tests
 # Run linter with auto-fix
 ruff check src tests --fix
 
-# Type checking
-mypy src
+# Optional type checking (not installed by default)
+pip install mypy
+python -m mypy src
 ```
+
+</details>
+
+<details>
+<summary><strong>Troubleshooting, CI, contributing, notes</strong></summary>
+
+## Troubleshooting
+
+### Embeddings / reranker model downloads
+
+- First run may download pretrained models via `sentence-transformers` / `transformers`.
+- If you are on a constrained machine, start with TF‑IDF/BM25 only (omit `--embeddings` and `--reranker`).
+
+### Windows error: paging file too small (OSError 1455)
+
+If you see `OSError: The paging file is too small for this operation to complete (os error 1455)`, it typically means Windows virtual memory is too small for loading the model weights.
+
+- Easiest workaround: run without `--embeddings` / `--reranker`.
+- Otherwise: increase Windows virtual memory (paging file), then retry.
+
+### Partial / corrupt index files
+
+If a run is interrupted during a heavy build, you may end up with an unusable index file in `outputs/`.
+Delete the affected `outputs/*.pkl` and rebuild.
 
 ### Continuous Integration
 GitHub Actions workflow includes:
@@ -361,3 +436,5 @@ See [.github/workflows/ci.yml](.github/workflows/ci.yml) for the complete CI con
 - Embedding-based methods trade latency for semantic quality
 - Ablation studies help identify optimal method for specific use cases
 - Benchmark comparisons quantify speed, quality, and memory trade-offs
+
+</details>

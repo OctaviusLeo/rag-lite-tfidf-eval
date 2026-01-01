@@ -12,6 +12,18 @@ from benchmark import format_system_info, get_system_info, measure_query_latency
 from rag import retrieve, retrieve_hybrid
 
 
+def _method_supported(index: Any, method: str, rerank: bool) -> tuple[bool, str | None]:
+    if getattr(index, "passages", None) is None or not hasattr(index, "tfidf_matrix"):
+        return False, "Index missing TF-IDF state (corrupt or incompatible index file)"
+    if method == "bm25" and getattr(index, "bm25", None) is None:
+        return False, "BM25 not available in this index"
+    if method in {"embeddings", "hybrid"} and getattr(index, "embedder", None) is None:
+        return False, "Embeddings not available in this index"
+    if rerank and getattr(index, "reranker", None) is None:
+        return False, "Reranker not available in this index"
+    return True, None
+
+
 def run_comparison(
     index_configs: list[dict[str, Any]], queries: list[str], k: int = 3, num_trials: int = 20
 ) -> dict[str, Any]:
@@ -41,8 +53,18 @@ def run_comparison(
             print("  ⚠ Index not found, skipping")
             continue
 
-        with open(config["path"], "rb") as f:
-            index = pickle.load(f)
+        try:
+            with open(config["path"], "rb") as f:
+                index = pickle.load(f)
+        except (MemoryError, OSError, pickle.UnpicklingError) as exc:
+            print(f"  ⚠ Failed to load index ({type(exc).__name__}): {exc}")
+            print("  ⚠ Skipping this index")
+            continue
+
+        if getattr(index, "passages", None) is None or not hasattr(index, "tfidf_matrix"):
+            print("  ⚠ Index appears corrupt or incompatible (missing TF-IDF state)")
+            print("  ⚠ Skipping this index")
+            continue
 
         index_size_mb = os.path.getsize(config["path"]) / (1024 * 1024)
 
@@ -67,6 +89,11 @@ def run_comparison(
             method_type = method_config["method"]
             rerank = method_config.get("rerank", False)
 
+            supported, reason = _method_supported(index, method_type, rerank)
+            if not supported:
+                print(f"\n  Skipping method: {method_name} ({reason})")
+                continue
+
             print(f"\n  Testing method: {method_name}")
 
             method_results = []
@@ -83,11 +110,25 @@ def run_comparison(
                     def retrieve_fn(idx, q, k_val, method=method_type, rerank_val=rerank):
                         return retrieve_hybrid(idx, q, k=k_val, method=method, rerank=rerank_val)
 
-                stats = measure_query_latency(
-                    index, query, k, method_name, retrieve_fn, num_warmup=5, num_trials=num_trials
-                )
+                try:
+                    stats = measure_query_latency(
+                        index,
+                        query,
+                        k,
+                        method_name,
+                        retrieve_fn,
+                        num_warmup=5,
+                        num_trials=num_trials,
+                    )
+                except Exception as exc:
+                    print(f"    ⚠ Skipping query ({type(exc).__name__}): {exc}")
+                    continue
+
                 method_results.append(stats)
                 print(f"    {query[:50]}... -> {stats['mean_ms']:.2f}ms")
+
+            if not method_results:
+                continue
 
             # Calculate aggregate stats
             avg_mean_ms = sum(r["mean_ms"] for r in method_results) / len(method_results)
