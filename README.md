@@ -469,3 +469,6 @@ See [.github/workflows/ci.yml](.github/workflows/ci.yml) for the complete CI con
 - Benchmark comparisons quantify speed, quality, and memory trade-offs
 
 </details>
+
+# Future Plans
+- AG-Lite as a real product
