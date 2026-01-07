@@ -10,8 +10,8 @@ import pickle
 import time
 from typing import Any
 
-from benchmark import Benchmark, format_system_info, get_system_info
-from rag import retrieve
+from src.benchmark import Benchmark, format_system_info, get_system_info
+from src.rag import retrieve
 
 
 def calculate_mrr_at_k(relevant_ids: list[int], retrieved_ids: list[int]) -> float:
@@ -333,5 +333,100 @@ def main() -> None:
         print(f"{'=' * 60}")
 
 
+def evaluate_retrieval(
+    index: Any,
+    eval_file: str,
+    k: int = 5,
+    method: str = "tfidf",
+    rerank: bool = False,
+    output_file: str | None = None,
+) -> dict[str, float]:
+    """
+    Evaluate retrieval performance on a test set.
+    
+    Args:
+        index: The retrieval index
+        eval_file: Path to JSONL file with queries and relevant_contains patterns
+        k: Number of results to retrieve
+        method: Retrieval method to use
+        rerank: Whether to apply reranking
+        output_file: Optional path to save detailed results
+        
+    Returns:
+        Dictionary with aggregate metrics (mrr, ndcg, precision, recall)
+    """
+    from src.rag import retrieve_hybrid
+    
+    # Load evaluation queries
+    queries = []
+    with open(eval_file, 'r', encoding='utf-8') as f:
+        for line in f:
+            queries.append(json.loads(line))
+    
+    # Run evaluation
+    all_results = []
+    mrr_scores = []
+    ndcg_scores = []
+    precision_scores = []
+    recall_scores = []
+    
+    for item in queries:
+        query = item['query']
+        relevant_pattern = item['relevant_contains']
+        
+        # Retrieve results
+        hits = retrieve_hybrid(index, query, k, method=method)
+        
+        # Check which results are relevant
+        relevant_positions = []
+        for rank, (idx, score, passage) in enumerate(hits, start=1):
+            if relevant_pattern.lower() in passage.lower():
+                relevant_positions.append(rank)
+        
+        # Calculate metrics
+        has_relevant = len(relevant_positions) > 0
+        first_relevant = relevant_positions[0] if relevant_positions else None
+        
+        mrr = 1.0 / first_relevant if first_relevant else 0.0
+        recall = 1.0 if has_relevant else 0.0
+        precision = len(relevant_positions) / k
+        
+        # nDCG
+        dcg = sum(1.0 / math.log2(pos + 1) for pos in relevant_positions)
+        idcg = sum(1.0 / math.log2(i + 2) for i in range(min(len(relevant_positions), k)))
+        ndcg = dcg / idcg if idcg > 0 else 0.0
+        
+        mrr_scores.append(mrr)
+        ndcg_scores.append(ndcg)
+        precision_scores.append(precision)
+        recall_scores.append(recall)
+        
+        all_results.append({
+            'query': query,
+            'relevant_contains': relevant_pattern,
+            'mrr@k': mrr,
+            'ndcg@k': ndcg,
+            'precision@k': precision,
+            'recall@k': recall,
+            'num_relevant_found': len(relevant_positions),
+        })
+    
+    # Save detailed results if requested
+    if output_file:
+        os.makedirs(os.path.dirname(output_file) or ".", exist_ok=True)
+        with open(output_file, 'w', encoding='utf-8') as f:
+            for result in all_results:
+                f.write(json.dumps(result) + '\n')
+    
+    # Return aggregate metrics
+    return {
+        'mrr': sum(mrr_scores) / len(mrr_scores) if mrr_scores else 0.0,
+        'ndcg': sum(ndcg_scores) / len(ndcg_scores) if ndcg_scores else 0.0,
+        'precision': sum(precision_scores) / len(precision_scores) if precision_scores else 0.0,
+        'recall': sum(recall_scores) / len(recall_scores) if recall_scores else 0.0,
+    }
+
+
 if __name__ == "__main__":
     main()
+

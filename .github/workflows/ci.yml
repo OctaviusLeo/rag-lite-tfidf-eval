@@ -105,3 +105,79 @@ jobs:
         run: |
           pip install twine
           twine check dist/*
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-packages
+          path: dist/
+
+  benchmark-sanity:
+    name: Benchmark Sanity Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Run quick benchmark
+        run: |
+          python -c "
+          from src.benchmark import get_system_info, format_system_info
+          from src.io_utils import read_text
+          from src.rag import build_index, retrieve
+          import time
+          
+          print('Running sanity benchmark...')
+          print(format_system_info(get_system_info()))
+          print()
+          
+          # Quick test with small data
+          passages = ['test passage ' + str(i) for i in range(100)]
+          
+          start = time.time()
+          index = build_index(passages)
+          build_time = time.time() - start
+          print(f'Build time: {build_time:.3f}s')
+          
+          start = time.time()
+          results = retrieve(index, 'test query', k=5)
+          query_time = time.time() - start
+          print(f'Query time: {query_time:.3f}s')
+          print(f'Results: {len(results)}')
+          
+          # Sanity checks
+          assert build_time < 5.0, 'Build too slow'
+          assert query_time < 1.0, 'Query too slow'
+          assert len(results) == 5, 'Wrong number of results'
+          print('✓ Sanity checks passed')
+          "
+
+      - name: Generate benchmark report
+        run: |
+          echo "# Benchmark Report" > benchmark_summary.md
+          echo "" >> benchmark_summary.md
+          echo "✓ Build sanity check passed" >> benchmark_summary.md
+          echo "✓ Query sanity check passed" >> benchmark_summary.md
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: benchmark_summary.md
+
+      - name: Build package
+        run: python -m build
+
+      - name: Check package
+        run: |
+          pip install twine
+          twine check dist/*
