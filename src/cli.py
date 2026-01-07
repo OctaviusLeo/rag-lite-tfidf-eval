@@ -126,7 +126,7 @@ def cmd_query(args: argparse.Namespace) -> None:
             ]
         print(json.dumps(output, indent=2))
     else:
-        print(f"\n🔍 Query: {args.query}")
+        print(f"\nQuery: {args.query}")
         print(f"Method: {args.method}")
         print(f"Top {args.k} results:\n")
 
@@ -169,7 +169,7 @@ def cmd_eval(args: argparse.Namespace) -> None:
         output_file=args.output,
     )
 
-    print("\n📊 Evaluation Results:")
+    print("\nEvaluation Results:")
     print(f"  MRR@{args.k}: {metrics['mrr']:.4f}")
     print(f"  nDCG@{args.k}: {metrics['ndcg']:.4f}")
     print(f"  Precision@{args.k}: {metrics['precision']:.4f}")

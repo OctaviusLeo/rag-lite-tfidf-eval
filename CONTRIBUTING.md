@@ -2,7 +2,7 @@
 
 Thank you for your interest in contributing to RAG-Lite! This document provides guidelines and instructions for contributing.
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -35,7 +35,7 @@ Thank you for your interest in contributing to RAG-Lite! This document provides 
    pre-commit install
    ```
 
-## 📝 Development Workflow
+## Development Workflow
 
 ### 1. Create a Feature Branch
 
@@ -118,7 +118,7 @@ Create a pull request on GitHub with:
 - Summary of changes
 - Test results
 
-## 🧪 Testing Guidelines
+## Testing Guidelines
 
 ### Writing Tests
 
@@ -170,7 +170,7 @@ pytest --cov=src --cov-report=html
 open htmlcov/index.html  # or start htmlcov/index.html on Windows
 ```
 
-## 📖 Documentation
+## Documentation
 
 ### Docstrings
 
@@ -207,7 +207,7 @@ Update README.md when:
 - Updating installation instructions
 - Adding new configuration options
 
-## 🎨 Code Style
+## Code Style
 
 ### Python Style Guide
 
@@ -238,7 +238,7 @@ ruff check src tests
 ruff check --fix src tests
 ```
 
-## 🏗️ Architecture Guidelines
+## Architecture Guidelines
 
 ### Adding New Retrieval Methods
 
@@ -262,7 +262,7 @@ ruff check --fix src tests
 - Cache expensive computations
 - Consider memory vs speed trade-offs
 
-## 🐛 Bug Reports
+## Bug Reports
 
 ### Creating Issues
 
@@ -297,7 +297,7 @@ Include:
 ```
 ```
 
-## 🎯 Feature Requests
+## Feature Requests
 
 When requesting features:
 1. Describe the use case
@@ -305,7 +305,7 @@ When requesting features:
 3. Suggest possible implementation
 4. Consider alternatives
 
-## 📦 Release Process
+## Release Process
 
 (For maintainers)
 
@@ -315,14 +315,14 @@ When requesting features:
 4. Create git tag
 5. Build and publish to PyPI
 
-## 💬 Communication
+## Communication
 
 - **Questions**: Open a GitHub Discussion
 - **Bugs**: Create an Issue
 - **Features**: Create an Issue or Discussion
 - **Security**: Email maintainers directly
 
-## 📜 Code of Conduct
+## Code of Conduct
 
 ### Our Standards
 
@@ -339,14 +339,14 @@ When requesting features:
 - Public or private harassment
 - Publishing others' private information
 
-## 🙏 Recognition
+## Recognition
 
 Contributors will be:
 - Listed in release notes
 - Mentioned in CHANGELOG.md
 - Added to contributors list
 
-## 📚 Resources
+## Resources
 
 - [Python Style Guide (PEP 8)](https://pep8.org/)
 - [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)
@@ -361,4 +361,4 @@ If you have questions not covered here:
 3. Ask in GitHub Discussions
 4. Open a new issue
 
-Thank you for contributing! 🎉
+Thank you for contributing!

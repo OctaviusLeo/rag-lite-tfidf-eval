@@ -383,7 +383,7 @@ def benchmark_all_methods(
     ]
 
     # Build indices for each method
-    print("\n📦 Building indices...")
+    print("\nBuilding indices...")
 
     # TF-IDF
     print("  Building TF-IDF index...")
@@ -425,7 +425,7 @@ def benchmark_all_methods(
         result_embeddings = b.get_result()
 
     # Run query benchmarks
-    print(f"\n🔍 Running query benchmarks ({trials} trials per method)...")
+    print(f"\nRunning query benchmarks ({trials} trials per method)...")
 
     methods_to_test = {
         "tfidf": idx_tfidf,

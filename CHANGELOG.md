@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2026-01-07
 
-### Added - Production Features 🚀
+### Added - Production Features
 
 #### Infrastructure
 - **Unified CLI** (`rag-lite`) with subcommands for build, query, eval, and benchmark
