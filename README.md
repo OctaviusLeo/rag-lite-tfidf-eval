@@ -6,31 +6,96 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**RAG-Lite** is a production-grade retrieval system demonstrating real engineering trade-offs (quality vs latency vs memory) with reproducible metrics. It features multiple retrieval methods (TF-IDF, BM25, dense embeddings, hybrid), optional reranking, comprehensive benchmarking, and a REST API—all pip-installable and Docker-ready.
+RAG‑Lite is a compact, production‑style retrieval stack: multiple retrieval methods (TF‑IDF, BM25, dense embeddings), optional cross‑encoder reranking, chunking with stable citations, and an evaluation + benchmarking harness.
+
+This repo is optimized for demonstrating real engineering trade‑offs (quality vs. latency vs. memory) with reproducible metrics.
+
+## Table of Contents
+
+- [Overview (features & modules)](#core-features)
+- [Setup (requirements & installation)](#requirements)
+- [Quickstart](#quickstart)
+  - [More examples](#basic-usage-tf-idf-only)
+    - [Basic usage](#basic-usage-tf-idf-only)
+    - [Performance benchmarking](#performance-benchmarking)
+    - [Benchmark comparison](#comprehensive-benchmark-comparison)
+    - [Chunking with grounding](#chunking-with-citation-grounding)
+    - [Hybrid + reranking](#hybrid-retrieval--chunking--reranking-full-pipeline)
+    - [Ablation study](#ablation-study-compare-all-methods)
+- [Reference: Performance & Evaluation](#performance-analysis)
+  - [Performance Analysis](#performance-analysis)
+  - [Citation Grounding](#citation-grounding)
+  - [Evaluation Framework](#evaluation-framework)
+- [Reference: Project Structure](#project-structure)
+  - [System Architecture](#system-architecture)
+- [Development](#development)
+  - [Testing](#testing)
+  - [Code Quality](#code-quality)
+- [Troubleshooting](#troubleshooting)
+  - [CI & Contributing](#continuous-integration)
+  - [Technical Notes](#technical-notes)
 
 ---
 
-## 🚀 Quick Start (One Command)
+### Demo
 
-```bash
-# Install
-pip install -e ".[api]"
-
-# Run API server
-rag-api
-
-# Or use CLI
-rag-lite query "your question here"
-```
-
-Visit http://localhost:8000/docs for interactive API documentation.
+![Demo RAG](assets/Demo-rag.png)
 
 ---
 
-## 📦 Installation
+<details>
+<summary><strong>Overview (features & modules)</strong></summary>
 
-### From Source
+---
 
+### Core Features
+
+**Multi-Method Retrieval** ([src/rag.py](src/rag.py))
+- TF-IDF baseline implementation
+- BM25 (Okapi) statistical ranking
+- Dense embeddings using Sentence-BERT (all-MiniLM-L6-v2)
+- Hybrid score fusion with configurable weights
+- Cross-encoder reranking (ms-marco-MiniLM-L-6-v2)
+
+**Document Chunking and Citation Tracking** ([src/rag.py](src/rag.py))
+- Configurable chunk size and overlap parameters
+- Stable citation identifiers (`[doc_0_chunk_2]`)
+- Character-level position tracking
+- Source document attribution
+- Automated snippet generation
+
+**Performance Benchmarking** ([src/benchmark.py](src/benchmark.py))
+- Latency measurement: mean, median, P95, P99 query times
+- Memory profiling: usage tracking and peak consumption
+- Throughput calculation: queries per second, passages per second
+- Index build time analysis
+- System information capture (CPU, memory, Python version)
+- Cross-method comparison framework
+
+**Evaluation and Analysis**
+- Advanced metrics: MRR@K, nDCG@K, Precision@K, Recall@K ([src/evaluate.py](src/evaluate.py))
+- Ablation study framework for method comparison ([src/ablation.py](src/ablation.py))
+- Per-query detailed reports with error analysis
+- Comprehensive benchmark comparison tool ([src/benchmark_comparison.py](src/benchmark_comparison.py))
+
+**Command-Line Interface**
+- Index building with hybrid components ([src/build_index.py](src/build_index.py))
+- Query execution with multiple retrieval methods ([src/query.py](src/query.py))
+- Grounded retrieval demonstration ([src/demo_grounded.py](src/demo_grounded.py))
+
+</details>
+
+<details>
+<summary><strong>Setup (requirements & installation)</strong></summary>
+
+## Requirements
+- Python 3.10 or higher
+- pip package manager
+- Git version control
+
+## Installation
+
+Clone the repository:
 ```bash
 git clone https://github.com/OctaviusLeo/rag-lite-tfidf-eval.git
 cd rag-lite-tfidf-eval
@@ -319,54 +384,26 @@ docker-compose down
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
 
-### Quick Guidelines
+### Contributing
+1. Fork the repository
+2. Create a feature branch
+3. Implement changes with corresponding tests
+4. Run tests and linting locally
+5. Submit a pull request with a clear description
 
-1. **Fork** and create a feature branch
-2. **Add tests** for new features
-3. **Run tests** and linting before committing
-4. **Update docs** as needed
-5. Submit a **pull request**
+## Technical Notes
+- Index output defaults to `outputs/index.pkl` (configurable with `--out` flag)
+- Performance metrics available via `--benchmark` flag
+- Hybrid index includes all retrieval methods for ablation studies
+- Document chunking is optional (defaults to full passages)
+- Chunk overlap preserves context across boundaries
+- Citation identifiers remain stable across index rebuilds
+- First run downloads pre-trained models (approximately 180MB for embeddings and reranker)
+- Embedding-based methods trade latency for semantic quality
+- Ablation studies help identify optimal method for specific use cases
+- Benchmark comparisons quantify speed, quality, and memory trade-offs
 
----
+</details>
 
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) for details.
-
----
-
-## 🔗 Links
-
-- **Documentation**: [Full docs](https://github.com/OctaviusLeo/rag-lite-tfidf-eval/wiki)
-- **Issues**: [Report bugs](https://github.com/OctaviusLeo/rag-lite-tfidf-eval/issues)
-- **Changelog**: [CHANGELOG.md](CHANGELOG.md)
-
----
-
-## 🎓 Citation
-
-If you use RAG-Lite in your research or project, please cite:
-
-```bibtex
-@software{rag_lite,
-  title={RAG-Lite: Production-Ready Retrieval System},
-  author={Your Name},
-  year={2026},
-  url={https://github.com/OctaviusLeo/rag-lite-tfidf-eval}
-}
-```
-
----
-
-## ⭐ Highlights
-
-**Why RAG-Lite?**
-
-- ✅ **Shippable**: pip install + one command to run
-- ✅ **Reproducible**: Deterministic benchmarks with CI checks
-- ✅ **Production-Ready**: API, caching, config, Docker
-- ✅ **Well-Tested**: >80% coverage, CI on multiple OS/Python versions
-- ✅ **Documented**: Clear README, API docs, contribution guide
-- ✅ **Engineered**: Not a notebook—real software architecture
-
-Perfect for demonstrating IR + evaluation knowledge **AND** software engineering skills.
+# Future Plans
+- AG-Lite as a real product (shipping + retrieval/eval work look like software).
