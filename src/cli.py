@@ -11,19 +11,16 @@ import os
 import pickle
 import sys
 import time
-from pathlib import Path
 
 import psutil
 
 from src.benchmark import (
     Benchmark,
-    format_latency_table,
     format_system_info,
     get_system_info,
-    measure_query_latency,
 )
 from src.io_utils import read_text
-from src.rag import build_index, retrieve, retrieve_grounded, retrieve_hybrid
+from src.rag import build_index, retrieve_grounded, retrieve_hybrid
 
 
 def cmd_build(args: argparse.Namespace) -> None:
@@ -172,7 +169,7 @@ def cmd_eval(args: argparse.Namespace) -> None:
         output_file=args.output,
     )
 
-    print(f"\n📊 Evaluation Results:")
+    print("\n📊 Evaluation Results:")
     print(f"  MRR@{args.k}: {metrics['mrr']:.4f}")
     print(f"  nDCG@{args.k}: {metrics['ndcg']:.4f}")
     print(f"  Precision@{args.k}: {metrics['precision']:.4f}")

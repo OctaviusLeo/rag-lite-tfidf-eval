@@ -338,7 +338,7 @@ def evaluate_retrieval(
     eval_file: str,
     k: int = 5,
     method: str = "tfidf",
-    rerank: bool = False,
+    _rerank: bool = False,
     output_file: str | None = None,
 ) -> dict[str, float]:
     """
@@ -359,7 +359,7 @@ def evaluate_retrieval(
 
     # Load evaluation queries
     queries = []
-    with open(eval_file, 'r', encoding='utf-8') as f:
+    with open(eval_file, encoding='utf-8') as f:
         for line in f:
             queries.append(json.loads(line))
 
@@ -379,7 +379,7 @@ def evaluate_retrieval(
 
         # Check which results are relevant
         relevant_positions = []
-        for rank, (idx, score, passage) in enumerate(hits, start=1):
+        for rank, (_idx, _score, passage) in enumerate(hits, start=1):
             if relevant_pattern.lower() in passage.lower():
                 relevant_positions.append(rank)
 

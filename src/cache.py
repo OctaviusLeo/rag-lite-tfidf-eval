@@ -13,6 +13,7 @@ import pickle
 import shutil
 import time
 from contextlib import suppress
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -46,7 +47,7 @@ class CacheManager:
     def _get_cache_size(self) -> float:
         """Get current cache size in MB."""
         total_size = 0
-        for dirpath, dirnames, filenames in os.walk(self.cache_dir):
+        for dirpath, _dirnames, filenames in os.walk(self.cache_dir):
             for filename in filenames:
                 filepath = os.path.join(dirpath, filename)
                 total_size += os.path.getsize(filepath)
@@ -60,7 +61,7 @@ class CacheManager:
 
         # Get all cache files with their access times
         cache_files = []
-        for dirpath, dirnames, filenames in os.walk(self.cache_dir):
+        for dirpath, _dirnames, filenames in os.walk(self.cache_dir):
             for filename in filenames:
                 filepath = os.path.join(dirpath, filename)
                 atime = os.path.getatime(filepath)
@@ -157,7 +158,7 @@ class CacheManager:
                 os.remove(cache_path)
                 return None
 
-            with open(cache_path, 'r') as f:
+            with open(cache_path) as f:
                 data = json.load(f)
             return [(item['text'], item['score']) for item in data]
         except Exception:

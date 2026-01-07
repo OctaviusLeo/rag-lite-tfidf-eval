@@ -326,8 +326,8 @@ def generate_json_report(
         benchmark_results: Dictionary containing benchmark data
         output_file: Path to output JSON file
     """
-    import json
     import datetime
+    import json
 
     report = {
         "generated_at": datetime.datetime.now().isoformat(),
@@ -346,7 +346,7 @@ def benchmark_all_methods(
     trials: int = 10,
     k: int = 5,
     use_embeddings: bool = True,
-    use_reranker: bool = True,
+    _use_reranker: bool = True,
 ) -> dict[str, Any]:
     """
     Run comprehensive benchmarks across all retrieval methods.
@@ -361,8 +361,9 @@ def benchmark_all_methods(
     Returns:
         Dictionary containing benchmark results for all methods
     """
-    from src.rag import build_index, retrieve_hybrid
     import statistics
+
+    from src.rag import build_index, retrieve_hybrid
 
     results = {
         "system_info": {

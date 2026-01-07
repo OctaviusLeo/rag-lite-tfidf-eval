@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
+
 try:
     import tomllib
 except ImportError:
@@ -78,7 +79,7 @@ class Config:
     @classmethod
     def from_yaml(cls, path: str | Path) -> Config:
         """Load configuration from YAML file."""
-        with open(path, 'r') as f:
+        with open(path) as f:
             data = yaml.safe_load(f)
         return cls.from_dict(data or {})
 
@@ -160,8 +161,6 @@ def load_config(config_path: str | Path | None = None) -> Config:
 
 def create_default_config_yaml(output_path: str | Path = "config.yaml") -> None:
     """Create a default configuration file in YAML format."""
-    config = Config()
-
     yaml_content = """# RAG-Lite Configuration
 
 # Retrieval settings

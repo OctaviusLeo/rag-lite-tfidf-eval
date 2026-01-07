@@ -9,16 +9,15 @@ import os
 import pickle
 import time
 from contextlib import asynccontextmanager
-from pathlib import Path
 from typing import Any, Literal
 
 import psutil
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from src.rag import Index, build_index, retrieve, retrieve_hybrid
 from src.io_utils import read_text
+from src.rag import Index, build_index, retrieve_hybrid
 
 
 # Global state
@@ -89,7 +88,7 @@ class MetricsResponse(BaseModel):
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     """Lifecycle manager for the FastAPI app."""
     # Startup: Try to load default index if it exists
     default_index = "outputs/index.pkl"
@@ -211,7 +210,7 @@ async def query_index(request: QueryRequest):
 
 
 @app.post("/build-index", response_model=BuildIndexResponse, tags=["Index Management"])
-async def build_new_index(request: BuildIndexRequest, background_tasks: BackgroundTasks):
+async def build_new_index(request: BuildIndexRequest, _background_tasks: BackgroundTasks):
     """
     Build a new index from documents.
 
