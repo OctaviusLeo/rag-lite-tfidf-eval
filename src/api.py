@@ -101,9 +101,9 @@ async def lifespan(app: FastAPI):
             print(f"✓ Loaded index from {default_index}")
         except Exception as e:
             print(f"⚠ Could not load default index: {e}")
-    
+
     yield
-    
+
     # Shutdown: Clean up if needed
     app_state["index"] = None
 
@@ -152,7 +152,7 @@ async def get_metrics():
     """Get API metrics and system information."""
     process = psutil.Process()
     memory_info = process.memory_info()
-    
+
     return MetricsResponse(
         queries_total=app_state["metrics"]["queries"],
         errors_total=app_state["metrics"]["errors"],
@@ -168,17 +168,17 @@ async def get_metrics():
 async def query_index(request: QueryRequest):
     """
     Query the loaded index.
-    
+
     Returns the top-k most relevant passages for the given query.
     """
     if app_state["index"] is None:
         raise HTTPException(status_code=503, detail="No index loaded. Build or load an index first.")
-    
+
     start_time = time.time()
-    
+
     try:
         index: Index = app_state["index"]
-        
+
         # Perform retrieval using retrieve_hybrid which supports all methods
         idx_score_text = retrieve_hybrid(
             index,
@@ -187,13 +187,13 @@ async def query_index(request: QueryRequest):
             method=request.method,
             rerank=request.rerank,
         )
-        
+
         # Convert to (text, score) format
         results = [(text, score) for idx, score, text in idx_score_text]
-        
+
         latency_ms = (time.time() - start_time) * 1000
         app_state["metrics"]["queries"] += 1
-        
+
         return QueryResponse(
             query=request.query,
             method=request.method,
@@ -204,7 +204,7 @@ async def query_index(request: QueryRequest):
             ],
             latency_ms=latency_ms,
         )
-    
+
     except Exception as e:
         app_state["metrics"]["errors"] += 1
         raise HTTPException(status_code=500, detail=f"Query failed: {str(e)}")
@@ -214,19 +214,19 @@ async def query_index(request: QueryRequest):
 async def build_new_index(request: BuildIndexRequest, background_tasks: BackgroundTasks):
     """
     Build a new index from documents.
-    
+
     This endpoint builds the index synchronously and returns when complete.
     For large document sets, consider increasing timeout settings.
     """
     if not os.path.exists(request.docs_path):
         raise HTTPException(status_code=404, detail=f"Documents file not found: {request.docs_path}")
-    
+
     try:
         start_time = time.time()
-        
+
         # Read documents
         passages = read_text(request.docs_path)
-        
+
         # Build index
         index = build_index(
             passages,
@@ -237,18 +237,18 @@ async def build_new_index(request: BuildIndexRequest, background_tasks: Backgrou
             chunk_size=request.chunk_size,
             overlap=request.overlap,
         )
-        
+
         # Save index
         os.makedirs(os.path.dirname(request.output_path) or ".", exist_ok=True)
         with open(request.output_path, "wb") as f:
             pickle.dump(index, f)
-        
+
         # Update app state
         app_state["index"] = index
         app_state["index_path"] = request.output_path
-        
+
         build_time = time.time() - start_time
-        
+
         return BuildIndexResponse(
             status="success",
             output_path=request.output_path,
@@ -256,7 +256,7 @@ async def build_new_index(request: BuildIndexRequest, background_tasks: Backgrou
             num_chunks=len(index.chunks) if index.chunks else None,
             build_time_seconds=build_time,
         )
-    
+
     except Exception as e:
         app_state["metrics"]["errors"] += 1
         raise HTTPException(status_code=500, detail=f"Index build failed: {str(e)}")
@@ -266,26 +266,26 @@ async def build_new_index(request: BuildIndexRequest, background_tasks: Backgrou
 async def load_existing_index(index_path: str):
     """
     Load an existing index from disk.
-    
+
     Args:
         index_path: Path to the index pickle file
     """
     if not os.path.exists(index_path):
         raise HTTPException(status_code=404, detail=f"Index file not found: {index_path}")
-    
+
     try:
         with open(index_path, "rb") as f:
             index = pickle.load(f)
-        
+
         app_state["index"] = index
         app_state["index_path"] = index_path
-        
+
         return {
             "status": "success",
             "message": f"Loaded index from {index_path}",
             "num_passages": len(index.passages),
         }
-    
+
     except Exception as e:
         app_state["metrics"]["errors"] += 1
         raise HTTPException(status_code=500, detail=f"Failed to load index: {str(e)}")
@@ -294,7 +294,7 @@ async def load_existing_index(index_path: str):
 def main():
     """Run the API server."""
     import uvicorn
-    
+
     uvicorn.run(
         "api:app",
         host="0.0.0.0",

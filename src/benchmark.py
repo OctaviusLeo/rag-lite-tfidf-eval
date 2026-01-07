@@ -211,17 +211,17 @@ def generate_markdown_report(
 ) -> None:
     """
     Generate a comprehensive Markdown benchmark report.
-    
+
     Args:
         benchmark_results: Dictionary containing benchmark data
         output_file: Path to output markdown file
     """
     import datetime
-    
+
     lines = []
     lines.append("# RAG-Lite Benchmark Report")
     lines.append(f"\n**Generated:** {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-    
+
     # System information
     if "system_info" in benchmark_results:
         info = benchmark_results["system_info"]
@@ -230,39 +230,39 @@ def generate_markdown_report(
         lines.append(f"- **Memory:** {info.get('total_memory_gb', 0):.2f} GB total")
         lines.append(f"- **Python:** {info.get('python_version', 'N/A')}")
         lines.append("")
-    
+
     # Summary table
     lines.append("## Performance Summary\n")
     lines.append("| Method | Mean Latency (ms) | P95 (ms) | P99 (ms) | Memory (MB) | QPS |")
     lines.append("|--------|-------------------|----------|----------|-------------|-----|")
-    
+
     for method_name, data in benchmark_results.items():
         if method_name == "system_info":
             continue
-        
+
         latency = data.get("latency", {})
         memory = data.get("memory", {})
         throughput = data.get("throughput", {})
-        
+
         mean = latency.get("mean", 0) * 1000  # Convert to ms
         p95 = latency.get("p95", 0) * 1000
         p99 = latency.get("p99", 0) * 1000
         mem = memory.get("peak_mb", 0)
         qps = throughput.get("queries_per_second", 0)
-        
+
         lines.append(f"| {method_name} | {mean:.2f} | {p95:.2f} | {p99:.2f} | {mem:.2f} | {qps:.2f} |")
-    
+
     lines.append("")
-    
+
     # Detailed metrics
     lines.append("## Detailed Metrics\n")
-    
+
     for method_name, data in benchmark_results.items():
         if method_name == "system_info":
             continue
-        
+
         lines.append(f"### {method_name.upper()}\n")
-        
+
         # Latency
         if "latency" in data:
             latency = data["latency"]
@@ -274,7 +274,7 @@ def generate_markdown_report(
             lines.append(f"- Min: {latency.get('min', 0)*1000:.4f} ms")
             lines.append(f"- Max: {latency.get('max', 0)*1000:.4f} ms")
             lines.append("")
-        
+
         # Memory
         if "memory" in data:
             memory = data["memory"]
@@ -282,7 +282,7 @@ def generate_markdown_report(
             lines.append(f"- Peak: {memory.get('peak_mb', 0):.2f} MB")
             lines.append(f"- Average: {memory.get('avg_mb', 0):.2f} MB")
             lines.append("")
-        
+
         # Throughput
         if "throughput" in data:
             throughput = data["throughput"]
@@ -291,13 +291,13 @@ def generate_markdown_report(
             if "passages_per_second" in throughput:
                 lines.append(f"- Passages per second: {throughput.get('passages_per_second', 0):.2f}")
             lines.append("")
-        
+
         # Build time
         if "build_time_seconds" in data:
             lines.append(f"**Index Build Time:** {data['build_time_seconds']:.2f}s\n")
-        
+
         lines.append("---\n")
-    
+
     # Recommendations
     lines.append("## Recommendations\n")
     lines.append("### Method Selection Guide\n")
@@ -306,12 +306,12 @@ def generate_markdown_report(
     lines.append("- **Embeddings:** Semantic search capability, higher latency and memory cost")
     lines.append("- **Hybrid:** Best quality, combines lexical + semantic, moderate overhead")
     lines.append("- **Reranking:** Highest quality, significant latency cost, use for <100 candidates\n")
-    
+
     # Write to file
     os.makedirs(os.path.dirname(output_file) or ".", exist_ok=True)
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write("\n".join(lines))
-    
+
     print(f"✓ Markdown report saved to: {output_file}")
 
 
@@ -321,23 +321,23 @@ def generate_json_report(
 ) -> None:
     """
     Generate a JSON benchmark report.
-    
+
     Args:
         benchmark_results: Dictionary containing benchmark data
         output_file: Path to output JSON file
     """
     import json
     import datetime
-    
+
     report = {
         "generated_at": datetime.datetime.now().isoformat(),
         "results": benchmark_results
     }
-    
+
     os.makedirs(os.path.dirname(output_file) or ".", exist_ok=True)
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(report, f, indent=2)
-    
+
     print(f"✓ JSON report saved to: {output_file}")
 
 
@@ -350,20 +350,20 @@ def benchmark_all_methods(
 ) -> dict[str, Any]:
     """
     Run comprehensive benchmarks across all retrieval methods.
-    
+
     Args:
         passages: List of text passages to index
         trials: Number of trials for latency measurement
         k: Number of results to retrieve
         use_embeddings: Whether to test embedding-based methods
         use_reranker: Whether to test reranking
-        
+
     Returns:
         Dictionary containing benchmark results for all methods
     """
     from src.rag import build_index, retrieve_hybrid
     import statistics
-    
+
     results = {
         "system_info": {
             "cpu_count": psutil.cpu_count(logical=False),
@@ -371,16 +371,16 @@ def benchmark_all_methods(
             "memory_total_gb": psutil.virtual_memory().total / (1024**3),
         }
     }
-    
+
     test_queries = [
         "machine learning",
         "neural networks",
         "deep learning algorithms",
     ]
-    
+
     # Build indices for each method
     print("\n📦 Building indices...")
-    
+
     # TF-IDF
     print("  Building TF-IDF index...")
     with benchmark("build_tfidf", track_memory=True) as b:
@@ -392,7 +392,7 @@ def benchmark_all_methods(
             use_chunking=False,
         )
     result_tfidf = b.get_result()
-    
+
     # BM25
     print("  Building BM25 index...")
     with benchmark("build_bm25", track_memory=True) as b:
@@ -404,7 +404,7 @@ def benchmark_all_methods(
             use_chunking=False,
         )
     result_bm25 = b.get_result()
-    
+
     # Embeddings (if enabled)
     idx_embeddings = None
     result_embeddings = None
@@ -419,15 +419,15 @@ def benchmark_all_methods(
                 use_chunking=False,
             )
         result_embeddings = b.get_result()
-    
+
     # Run query benchmarks
     print(f"\n🔍 Running query benchmarks ({trials} trials per method)...")
-    
+
     methods_to_test = {
         "tfidf": idx_tfidf,
         "bm25": idx_bm25,
     }
-    
+
     if use_embeddings and idx_embeddings:
         methods_to_test["embeddings"] = idx_embeddings
         methods_to_test["hybrid"] = build_index(
@@ -437,17 +437,17 @@ def benchmark_all_methods(
             use_reranker=False,
             use_chunking=False,
         )
-    
+
     for method_name, index in methods_to_test.items():
         print(f"  Testing {method_name}...")
         latencies = []
         memories = []
-        
+
         for query in test_queries:
             # Warmup
             for _ in range(2):
                 retrieve_hybrid(index, query, k, method=method_name if method_name != "hybrid" else "hybrid")
-            
+
             # Measure
             for _ in range(trials):
                 mem_before = psutil.Process().memory_info().rss / (1024**2)
@@ -456,7 +456,7 @@ def benchmark_all_methods(
                 latencies.append(time.time() - start)
                 mem_after = psutil.Process().memory_info().rss / (1024**2)
                 memories.append(mem_after - mem_before)
-        
+
         # Calculate statistics
         latencies.sort()
         results[method_name] = {
@@ -476,7 +476,7 @@ def benchmark_all_methods(
                 "queries_per_second": 1.0 / statistics.mean(latencies) if latencies and statistics.mean(latencies) > 0 else 0,
             }
         }
-        
+
         # Add build times
         if method_name == "tfidf":
             results[method_name]["build_time_seconds"] = result_tfidf.wall_time
@@ -484,5 +484,5 @@ def benchmark_all_methods(
             results[method_name]["build_time_seconds"] = result_bm25.wall_time
         elif method_name == "embeddings" and result_embeddings:
             results[method_name]["build_time_seconds"] = result_embeddings.wall_time
-    
+
     return results

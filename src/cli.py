@@ -45,7 +45,7 @@ def cmd_build(args: argparse.Namespace) -> None:
         print(f"  ✓ Chunking enabled (size={args.chunk_size}, overlap={args.overlap})")
 
     passages = read_text(args.docs)
-    
+
     if args.verbose:
         benchmark = Benchmark("Index Build", track_memory=True)
         benchmark.start_time = time.time()
@@ -74,7 +74,7 @@ def cmd_build(args: argparse.Namespace) -> None:
 
     with open(args.output, "wb") as f:
         pickle.dump(index, f)
-    
+
     print(f"\n✓ Index saved to: {args.output}")
 
 
@@ -82,7 +82,7 @@ def cmd_query(args: argparse.Namespace) -> None:
     """Execute a query against the index."""
     if not os.path.exists(args.index):
         print(f"✗ Error: Index not found: {args.index}", file=sys.stderr)
-        print(f"  Run 'rag-lite build' first to create an index.", file=sys.stderr)
+        print("  Run 'rag-lite build' first to create an index.", file=sys.stderr)
         sys.exit(1)
 
     with open(args.index, "rb") as f:
@@ -101,9 +101,9 @@ def cmd_query(args: argparse.Namespace) -> None:
     else:
         # Use retrieve_hybrid which supports all methods
         idx_score_text = retrieve_hybrid(
-            index, 
-            args.query, 
-            k=args.k, 
+            index,
+            args.query,
+            k=args.k,
             method=args.method,
             rerank=args.rerank
         )
@@ -132,7 +132,7 @@ def cmd_query(args: argparse.Namespace) -> None:
         print(f"\n🔍 Query: {args.query}")
         print(f"Method: {args.method}")
         print(f"Top {args.k} results:\n")
-        
+
         for i, result in enumerate(results, 1):
             if args.grounded:
                 # GroundedResult object
@@ -162,7 +162,7 @@ def cmd_eval(args: argparse.Namespace) -> None:
         index = pickle.load(f)
 
     print(f"Running evaluation with {args.method} (k={args.k})...")
-    
+
     metrics = evaluate_retrieval(
         index,
         args.eval_file,
@@ -177,7 +177,7 @@ def cmd_eval(args: argparse.Namespace) -> None:
     print(f"  nDCG@{args.k}: {metrics['ndcg']:.4f}")
     print(f"  Precision@{args.k}: {metrics['precision']:.4f}")
     print(f"  Recall@{args.k}: {metrics['recall']:.4f}")
-    
+
     if args.output:
         print(f"\n✓ Detailed report saved to: {args.output}")
 
@@ -191,7 +191,7 @@ def cmd_benchmark(args: argparse.Namespace) -> None:
         sys.exit(1)
 
     passages = read_text(args.docs)
-    
+
     print("Running comprehensive benchmarks...")
     print(f"Documents: {len(passages)}")
     print(f"Trials: {args.trials}\n")
@@ -235,9 +235,9 @@ def main() -> None:
         description="Production-grade retrieval system with multiple methods and benchmarking",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    
+
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
-    
+
     # Build command
     build_parser = subparsers.add_parser("build", help="Build an index from documents")
     build_parser.add_argument("--docs", default="data/docs.txt", help="Path to documents file")
@@ -250,7 +250,7 @@ def main() -> None:
     build_parser.add_argument("--overlap", type=int, default=50, help="Overlap between chunks")
     build_parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
     build_parser.set_defaults(func=cmd_build)
-    
+
     # Query command
     query_parser = subparsers.add_parser("query", help="Query the index")
     query_parser.add_argument("query", help="Query string")
@@ -267,7 +267,7 @@ def main() -> None:
     query_parser.add_argument("--snippet-length", type=int, default=150, help="Snippet length")
     query_parser.add_argument("--json", action="store_true", help="Output as JSON")
     query_parser.set_defaults(func=cmd_query)
-    
+
     # Eval command
     eval_parser = subparsers.add_parser("eval", help="Evaluate retrieval performance")
     eval_parser.add_argument("--index", "-i", default="outputs/index.pkl", help="Index file")
@@ -282,7 +282,7 @@ def main() -> None:
     eval_parser.add_argument("--rerank", action="store_true", help="Enable reranking")
     eval_parser.add_argument("--output", "-o", help="Output report file")
     eval_parser.set_defaults(func=cmd_eval)
-    
+
     # Benchmark command
     bench_parser = subparsers.add_parser("benchmark", help="Run performance benchmarks")
     bench_parser.add_argument("--docs", default="data/docs.txt", help="Documents file")
@@ -293,13 +293,13 @@ def main() -> None:
     bench_parser.add_argument("--output", "-o", help="Output JSON file")
     bench_parser.add_argument("--json", action="store_true", help="Output as JSON")
     bench_parser.set_defaults(func=cmd_benchmark)
-    
+
     args = parser.parse_args()
-    
+
     if not args.command:
         parser.print_help()
         sys.exit(1)
-    
+
     args.func(args)
 
 
