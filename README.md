@@ -118,6 +118,9 @@ Optimized for demonstrating real engineering trade-offs (quality vs. latency vs.
 
 ### Basic Installation
 
+<details>
+<summary>Standard Installation Options</summary>
+
 ```bash
 git clone https://github.com/OctaviusLeo/rag-lite-tfidf-eval.git
 cd rag-lite-tfidf-eval
@@ -138,7 +141,12 @@ pip install -e ".[dev]"
 pip install -e ".[all]"
 ```
 
+</details>
+
 ### Docker Installation
+
+<details>
+<summary>Docker Setup</summary>
 
 ```bash
 # Build and run with docker-compose
@@ -147,6 +155,8 @@ docker-compose up -d
 # API available at http://localhost:8000
 curl http://localhost:8000/health
 ```
+
+</details>
 
 ---
 
@@ -173,6 +183,9 @@ rag-lite benchmark --docs data/docs.txt --trials 10 --output outputs/benchmark.j
 ### Command Line Interface
 
 #### Build Index
+
+<details>
+<summary>Build Index Options</summary>
 
 ```bash
 # Basic TF-IDF index
@@ -202,7 +215,12 @@ rag-lite build --docs data/docs.txt \
 - `--overlap N`: Overlap between chunks (default: 50)
 - `--verbose`: Show detailed build information
 
+</details>
+
 #### Query Index
+
+<details>
+<summary>Query Index Options</summary>
 
 ```bash
 # Basic query
@@ -231,7 +249,12 @@ rag-lite query "machine learning" --index outputs/index.pkl --method bm25 --json
 - `--json`: Output results as JSON
 - `--output PATH`: Save results to file
 
+</details>
+
 #### Evaluate
+
+<details>
+<summary>Evaluation Options</summary>
 
 ```bash
 # Run evaluation on test set
@@ -256,7 +279,12 @@ rag-lite eval --index outputs/index.pkl \
 {"query": "What is TF-IDF used for?", "relevant_contains": "retrieval technique"}
 ```
 
+</details>
+
 #### Benchmark
+
+<details>
+<summary>Benchmark Options</summary>
 
 ```bash
 # Run performance benchmark
@@ -281,7 +309,12 @@ rag-lite benchmark --docs data/docs.txt \
 - `--output PATH`: Save results as JSON
 - `--json`: Output results as JSON to stdout
 
+</details>
+
 ### REST API
+
+<details>
+<summary>API Endpoints and Usage</summary>
 
 #### Start Server
 
@@ -340,7 +373,12 @@ curl http://localhost:8000/metrics
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
 
+</details>
+
 ### Python API
+
+<details>
+<summary>Programmatic Usage Examples</summary>
 
 ```python
 from src.rag import build_index, retrieve_hybrid
@@ -378,7 +416,12 @@ with open("outputs/my_index.pkl", "rb") as f:
     loaded_index = pickle.load(f)
 ```
 
+</details>
+
 ### Configuration
+
+<details>
+<summary>Configuration File Format and Usage</summary>
 
 Create a `config.yaml` file:
 
@@ -424,6 +467,8 @@ rag-api
 from src.config import load_config
 config = load_config("config.yaml")
 ```
+
+</details>
 
 ---
 
@@ -508,6 +553,9 @@ rag-lite/
 
 ## Development
 
+<details>
+<summary>Development Setup and Testing</summary>
+
 ### Setup Development Environment
 
 ```bash
@@ -580,9 +628,14 @@ mypy src
 5. **Update docs** in README.md
 6. **Run tests and linting** locally before committing
 
+</details>
+
 ---
 
 ## Docker Deployment
+
+<details>
+<summary>Docker Deployment Options</summary>
 
 ### Single Container
 
@@ -623,6 +676,8 @@ docker-compose up -d --build
 - Shared volume for data and indices
 - Health checks and restart policies
 
+</details>
+
 ---
 
 ## Contributing
@@ -658,6 +713,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Technical Notes
 
+<details>
+<summary>Implementation Details and Performance Tips</summary>
+
 ### Index Format
 - Indices are saved as pickle files containing all necessary data structures
 - Include TF-IDF vectorizer, BM25 index, embeddings, and metadata
@@ -683,6 +741,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Memory usage scales with corpus size and number of methods enabled
 - Reranking adds significant latency (use sparingly)
 - Redis cache requires separate Redis server
+
+</details>
 
 ---
 
