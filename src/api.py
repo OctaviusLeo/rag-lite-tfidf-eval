@@ -3,6 +3,7 @@ FastAPI REST API for RAG-Lite.
 
 Provides HTTP endpoints for building indices, querying, and system health checks.
 """
+
 from __future__ import annotations
 
 import os
@@ -27,17 +28,21 @@ app_state = {"index": None, "index_path": None, "metrics": {"queries": 0, "error
 # Pydantic models
 class QueryRequest(BaseModel):
     """Request model for query endpoint."""
+
     query: str = Field(..., description="Query string to search for", min_length=1)
     k: int = Field(default=3, ge=1, le=100, description="Number of results to return")
     method: Literal["tfidf", "bm25", "embeddings", "hybrid"] = Field(
         default="tfidf", description="Retrieval method to use"
     )
     rerank: bool = Field(default=False, description="Apply cross-encoder reranking")
-    bm25_weight: float = Field(default=0.5, ge=0.0, le=1.0, description="Weight for BM25 in hybrid mode")
+    bm25_weight: float = Field(
+        default=0.5, ge=0.0, le=1.0, description="Weight for BM25 in hybrid mode"
+    )
 
 
 class QueryResult(BaseModel):
     """Single result from a query."""
+
     rank: int
     text: str
     score: float
@@ -45,6 +50,7 @@ class QueryResult(BaseModel):
 
 class QueryResponse(BaseModel):
     """Response model for query endpoint."""
+
     query: str
     method: str
     k: int
@@ -54,6 +60,7 @@ class QueryResponse(BaseModel):
 
 class BuildIndexRequest(BaseModel):
     """Request model for building an index."""
+
     docs_path: str = Field(..., description="Path to documents file")
     output_path: str = Field(default="outputs/index.pkl", description="Path to save index")
     bm25: bool = Field(default=False, description="Enable BM25")
@@ -66,6 +73,7 @@ class BuildIndexRequest(BaseModel):
 
 class BuildIndexResponse(BaseModel):
     """Response model for build index endpoint."""
+
     status: str
     output_path: str
     num_passages: int
@@ -75,6 +83,7 @@ class BuildIndexResponse(BaseModel):
 
 class HealthResponse(BaseModel):
     """Response model for health check."""
+
     status: str
     index_loaded: bool
     index_path: str | None = None
@@ -82,6 +91,7 @@ class HealthResponse(BaseModel):
 
 class MetricsResponse(BaseModel):
     """Response model for metrics endpoint."""
+
     queries_total: int
     errors_total: int
     system: dict[str, Any]
@@ -171,7 +181,9 @@ async def query_index(request: QueryRequest):
     Returns the top-k most relevant passages for the given query.
     """
     if app_state["index"] is None:
-        raise HTTPException(status_code=503, detail="No index loaded. Build or load an index first.")
+        raise HTTPException(
+            status_code=503, detail="No index loaded. Build or load an index first."
+        )
 
     start_time = time.time()
 
@@ -218,7 +230,9 @@ async def build_new_index(request: BuildIndexRequest, _background_tasks: Backgro
     For large document sets, consider increasing timeout settings.
     """
     if not os.path.exists(request.docs_path):
-        raise HTTPException(status_code=404, detail=f"Documents file not found: {request.docs_path}")
+        raise HTTPException(
+            status_code=404, detail=f"Documents file not found: {request.docs_path}"
+        )
 
     try:
         start_time = time.time()

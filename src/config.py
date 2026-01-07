@@ -4,6 +4,7 @@ Configuration management for RAG-Lite.
 Supports YAML and TOML configuration files for retrieval parameters,
 model settings, caching, and system configuration.
 """
+
 from __future__ import annotations
 
 import os
@@ -23,6 +24,7 @@ import yaml
 @dataclass
 class RetrievalConfig:
     """Configuration for retrieval methods."""
+
     default_method: Literal["tfidf", "bm25", "embeddings", "hybrid"] = "tfidf"
     default_k: int = 10
     bm25_weight: float = 0.5  # Weight for hybrid retrieval
@@ -32,6 +34,7 @@ class RetrievalConfig:
 @dataclass
 class ModelConfig:
     """Configuration for ML models."""
+
     embedder_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     batch_size: int = 32
@@ -41,6 +44,7 @@ class ModelConfig:
 @dataclass
 class ChunkingConfig:
     """Configuration for document chunking."""
+
     enabled: bool = False
     chunk_size: int = 200
     overlap: int = 50
@@ -49,6 +53,7 @@ class ChunkingConfig:
 @dataclass
 class CacheConfig:
     """Configuration for caching."""
+
     enabled: bool = True
     cache_dir: str = ".cache/rag-lite"
     embeddings_cache: bool = True
@@ -60,6 +65,7 @@ class CacheConfig:
 @dataclass
 class APIConfig:
     """Configuration for REST API."""
+
     host: str = "0.0.0.0"
     port: int = 8000
     reload: bool = False
@@ -70,6 +76,7 @@ class APIConfig:
 @dataclass
 class Config:
     """Main configuration container."""
+
     retrieval: RetrievalConfig = field(default_factory=RetrievalConfig)
     models: ModelConfig = field(default_factory=ModelConfig)
     chunking: ChunkingConfig = field(default_factory=ChunkingConfig)
@@ -86,7 +93,7 @@ class Config:
     @classmethod
     def from_toml(cls, path: str | Path) -> Config:
         """Load configuration from TOML file."""
-        with open(path, 'rb') as f:
+        with open(path, "rb") as f:
             data = tomllib.load(f)
         return cls.from_dict(data)
 
@@ -94,11 +101,11 @@ class Config:
     def from_dict(cls, data: dict[str, Any]) -> Config:
         """Create configuration from dictionary."""
         return cls(
-            retrieval=RetrievalConfig(**data.get('retrieval', {})),
-            models=ModelConfig(**data.get('models', {})),
-            chunking=ChunkingConfig(**data.get('chunking', {})),
-            cache=CacheConfig(**data.get('cache', {})),
-            api=APIConfig(**data.get('api', {})),
+            retrieval=RetrievalConfig(**data.get("retrieval", {})),
+            models=ModelConfig(**data.get("models", {})),
+            chunking=ChunkingConfig(**data.get("chunking", {})),
+            cache=CacheConfig(**data.get("cache", {})),
+            api=APIConfig(**data.get("api", {})),
         )
 
     @classmethod
@@ -112,9 +119,9 @@ class Config:
         if not path.exists():
             raise FileNotFoundError(f"Configuration file not found: {path}")
 
-        if path.suffix in ['.yaml', '.yml']:
+        if path.suffix in [".yaml", ".yml"]:
             return cls.from_yaml(path)
-        elif path.suffix == '.toml':
+        elif path.suffix == ".toml":
             return cls.from_toml(path)
         else:
             raise ValueError(f"Unsupported configuration format: {path.suffix}")
@@ -122,11 +129,11 @@ class Config:
     def to_dict(self) -> dict[str, Any]:
         """Convert configuration to dictionary."""
         return {
-            'retrieval': self.retrieval.__dict__,
-            'models': self.models.__dict__,
-            'chunking': self.chunking.__dict__,
-            'cache': self.cache.__dict__,
-            'api': self.api.__dict__,
+            "retrieval": self.retrieval.__dict__,
+            "models": self.models.__dict__,
+            "chunking": self.chunking.__dict__,
+            "cache": self.cache.__dict__,
+            "api": self.api.__dict__,
         }
 
 
@@ -146,12 +153,12 @@ def load_config(config_path: str | Path | None = None) -> Config:
         return Config.from_file(config_path)
 
     # Check environment variable
-    env_config = os.environ.get('RAG_LITE_CONFIG')
+    env_config = os.environ.get("RAG_LITE_CONFIG")
     if env_config and os.path.exists(env_config):
         return Config.from_file(env_config)
 
     # Check default locations
-    for default_path in ['config.yaml', 'config.yml', 'config.toml']:
+    for default_path in ["config.yaml", "config.yml", "config.toml"]:
         if os.path.exists(default_path):
             return Config.from_file(default_path)
 
@@ -201,7 +208,7 @@ api:
   log_level: info
 """
 
-    with open(output_path, 'w') as f:
+    with open(output_path, "w") as f:
         f.write(yaml_content)
 
     print(f"✓ Created default configuration: {output_path}")
@@ -244,7 +251,7 @@ workers = 1
 log_level = "info"
 """
 
-    with open(output_path, 'w') as f:
+    with open(output_path, "w") as f:
         f.write(toml_content)
 
     print(f"✓ Created default configuration: {output_path}")

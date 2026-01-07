@@ -206,8 +206,7 @@ def format_system_info(info: dict[str, Any]) -> str:
 
 
 def generate_markdown_report(
-    benchmark_results: dict[str, Any],
-    output_file: str = "outputs/benchmark_report.md"
+    benchmark_results: dict[str, Any], output_file: str = "outputs/benchmark_report.md"
 ) -> None:
     """
     Generate a comprehensive Markdown benchmark report.
@@ -226,7 +225,9 @@ def generate_markdown_report(
     if "system_info" in benchmark_results:
         info = benchmark_results["system_info"]
         lines.append("## System Configuration\n")
-        lines.append(f"- **CPU:** {info.get('cpu_count', 'N/A')} physical cores, {info.get('cpu_count_logical', 'N/A')} logical")
+        lines.append(
+            f"- **CPU:** {info.get('cpu_count', 'N/A')} physical cores, {info.get('cpu_count_logical', 'N/A')} logical"
+        )
         lines.append(f"- **Memory:** {info.get('total_memory_gb', 0):.2f} GB total")
         lines.append(f"- **Python:** {info.get('python_version', 'N/A')}")
         lines.append("")
@@ -250,7 +251,9 @@ def generate_markdown_report(
         mem = memory.get("peak_mb", 0)
         qps = throughput.get("queries_per_second", 0)
 
-        lines.append(f"| {method_name} | {mean:.2f} | {p95:.2f} | {p99:.2f} | {mem:.2f} | {qps:.2f} |")
+        lines.append(
+            f"| {method_name} | {mean:.2f} | {p95:.2f} | {p99:.2f} | {mem:.2f} | {qps:.2f} |"
+        )
 
     lines.append("")
 
@@ -289,7 +292,9 @@ def generate_markdown_report(
             lines.append("**Throughput:**\n")
             lines.append(f"- Queries per second: {throughput.get('queries_per_second', 0):.2f}")
             if "passages_per_second" in throughput:
-                lines.append(f"- Passages per second: {throughput.get('passages_per_second', 0):.2f}")
+                lines.append(
+                    f"- Passages per second: {throughput.get('passages_per_second', 0):.2f}"
+                )
             lines.append("")
 
         # Build time
@@ -305,19 +310,20 @@ def generate_markdown_report(
     lines.append("- **BM25:** Better ranking than TF-IDF, minimal overhead, recommended baseline")
     lines.append("- **Embeddings:** Semantic search capability, higher latency and memory cost")
     lines.append("- **Hybrid:** Best quality, combines lexical + semantic, moderate overhead")
-    lines.append("- **Reranking:** Highest quality, significant latency cost, use for <100 candidates\n")
+    lines.append(
+        "- **Reranking:** Highest quality, significant latency cost, use for <100 candidates\n"
+    )
 
     # Write to file
     os.makedirs(os.path.dirname(output_file) or ".", exist_ok=True)
-    with open(output_file, 'w', encoding='utf-8') as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
     print(f"✓ Markdown report saved to: {output_file}")
 
 
 def generate_json_report(
-    benchmark_results: dict[str, Any],
-    output_file: str = "outputs/benchmark_report.json"
+    benchmark_results: dict[str, Any], output_file: str = "outputs/benchmark_report.json"
 ) -> None:
     """
     Generate a JSON benchmark report.
@@ -329,13 +335,10 @@ def generate_json_report(
     import datetime
     import json
 
-    report = {
-        "generated_at": datetime.datetime.now().isoformat(),
-        "results": benchmark_results
-    }
+    report = {"generated_at": datetime.datetime.now().isoformat(), "results": benchmark_results}
 
     os.makedirs(os.path.dirname(output_file) or ".", exist_ok=True)
-    with open(output_file, 'w', encoding='utf-8') as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2)
 
     print(f"✓ JSON report saved to: {output_file}")
@@ -447,13 +450,17 @@ def benchmark_all_methods(
         for query in test_queries:
             # Warmup
             for _ in range(2):
-                retrieve_hybrid(index, query, k, method=method_name if method_name != "hybrid" else "hybrid")
+                retrieve_hybrid(
+                    index, query, k, method=method_name if method_name != "hybrid" else "hybrid"
+                )
 
             # Measure
             for _ in range(trials):
                 mem_before = psutil.Process().memory_info().rss / (1024**2)
                 start = time.time()
-                retrieve_hybrid(index, query, k, method=method_name if method_name != "hybrid" else "hybrid")
+                retrieve_hybrid(
+                    index, query, k, method=method_name if method_name != "hybrid" else "hybrid"
+                )
                 latencies.append(time.time() - start)
                 mem_after = psutil.Process().memory_info().rss / (1024**2)
                 memories.append(mem_after - mem_before)
@@ -474,8 +481,12 @@ def benchmark_all_methods(
                 "avg_mb": statistics.mean(memories) if memories else 0,
             },
             "throughput": {
-                "queries_per_second": 1.0 / statistics.mean(latencies) if latencies and statistics.mean(latencies) > 0 else 0,
-            }
+                "queries_per_second": (
+                    1.0 / statistics.mean(latencies)
+                    if latencies and statistics.mean(latencies) > 0
+                    else 0
+                ),
+            },
         }
 
         # Add build times

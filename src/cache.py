@@ -4,6 +4,7 @@ Caching layer for RAG-Lite.
 Provides file-based caching for embeddings and query results,
 with optional Redis support for distributed caching.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -104,7 +105,7 @@ class CacheManager:
             return None
 
         try:
-            with open(cache_path, 'rb') as f:
+            with open(cache_path, "rb") as f:
                 return pickle.load(f)
         except Exception:
             return None
@@ -120,7 +121,7 @@ class CacheManager:
         """
         cache_path = self.get_embedding_cache_path(text, model)
         try:
-            with open(cache_path, 'wb') as f:
+            with open(cache_path, "wb") as f:
                 pickle.dump(embedding, f)
             self._cleanup_if_needed()
         except Exception:
@@ -160,7 +161,7 @@ class CacheManager:
 
             with open(cache_path) as f:
                 data = json.load(f)
-            return [(item['text'], item['score']) for item in data]
+            return [(item["text"], item["score"]) for item in data]
         except Exception:
             return None
 
@@ -179,8 +180,8 @@ class CacheManager:
         """
         cache_path = self.get_query_cache_path(query, method, k, index_hash)
         try:
-            data = [{'text': text, 'score': score} for text, score in results]
-            with open(cache_path, 'w') as f:
+            data = [{"text": text, "score": score} for text, score in results]
+            with open(cache_path, "w") as f:
                 json.dump(data, f)
             self._cleanup_if_needed()
         except Exception:
@@ -203,6 +204,7 @@ class CacheManager:
 
     def get_stats(self) -> dict[str, Any]:
         """Get cache statistics."""
+
         def count_files(directory: Path) -> int:
             return len(list(directory.glob("*"))) if directory.exists() else 0
 
@@ -230,6 +232,7 @@ class RedisCache:
         """
         try:
             import redis
+
             self.redis = redis.Redis(host=host, port=port, db=db, decode_responses=False)
             self.ttl = ttl
             self.available = True

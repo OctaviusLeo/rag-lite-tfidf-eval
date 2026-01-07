@@ -3,6 +3,7 @@ Unified command-line interface for RAG-Lite.
 
 Provides commands for building indices, querying, evaluation, and benchmarking.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -98,11 +99,7 @@ def cmd_query(args: argparse.Namespace) -> None:
     else:
         # Use retrieve_hybrid which supports all methods
         idx_score_text = retrieve_hybrid(
-            index,
-            args.query,
-            k=args.k,
-            method=args.method,
-            rerank=args.rerank
+            index, args.query, k=args.k, method=args.method, rerank=args.rerank
         )
         # Convert to (text, score) format for consistency
         results = [(text, score) for idx, score, text in idx_score_text]
@@ -123,7 +120,10 @@ def cmd_query(args: argparse.Namespace) -> None:
                 for r in results
             ]
         else:
-            output = [{"rank": i + 1, "text": text, "score": score} for i, (text, score) in enumerate(results)]
+            output = [
+                {"rank": i + 1, "text": text, "score": score}
+                for i, (text, score) in enumerate(results)
+            ]
         print(json.dumps(output, indent=2))
     else:
         print(f"\n🔍 Query: {args.query}")
@@ -205,22 +205,22 @@ def cmd_benchmark(args: argparse.Namespace) -> None:
     if args.json:
         print(json.dumps(results, indent=2))
     else:
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("BENCHMARK RESULTS")
-        print("="*80 + "\n")
+        print("=" * 80 + "\n")
         for method, data in results.items():
             if method == "system_info":
                 continue
             print(f"{method.upper()}")
-            if 'latency' in data:
+            if "latency" in data:
                 print(f"  Mean latency: {data['latency']['mean']:.4f}s")
                 print(f"  P95 latency: {data['latency']['p95']:.4f}s")
-            if 'memory' in data:
+            if "memory" in data:
                 print(f"  Memory: {data['memory']['peak_mb']:.2f} MB")
             print()
 
     if args.output:
-        with open(args.output, 'w') as f:
+        with open(args.output, "w") as f:
             json.dump(results, f, indent=2)
         print(f"\n✓ Results saved to: {args.output}")
 
@@ -238,12 +238,16 @@ def main() -> None:
     # Build command
     build_parser = subparsers.add_parser("build", help="Build an index from documents")
     build_parser.add_argument("--docs", default="data/docs.txt", help="Path to documents file")
-    build_parser.add_argument("--output", "-o", default="outputs/index.pkl", help="Output index file")
+    build_parser.add_argument(
+        "--output", "-o", default="outputs/index.pkl", help="Output index file"
+    )
     build_parser.add_argument("--bm25", action="store_true", help="Enable BM25")
     build_parser.add_argument("--embeddings", action="store_true", help="Enable dense embeddings")
     build_parser.add_argument("--reranker", action="store_true", help="Load reranker model")
     build_parser.add_argument("--chunking", action="store_true", help="Enable document chunking")
-    build_parser.add_argument("--chunk-size", type=int, default=200, help="Chunk size in characters")
+    build_parser.add_argument(
+        "--chunk-size", type=int, default=200, help="Chunk size in characters"
+    )
     build_parser.add_argument("--overlap", type=int, default=50, help="Overlap between chunks")
     build_parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
     build_parser.set_defaults(func=cmd_build)
@@ -260,7 +264,9 @@ def main() -> None:
         help="Retrieval method",
     )
     query_parser.add_argument("--rerank", action="store_true", help="Enable reranking")
-    query_parser.add_argument("--grounded", action="store_true", help="Show grounded results with citations")
+    query_parser.add_argument(
+        "--grounded", action="store_true", help="Show grounded results with citations"
+    )
     query_parser.add_argument("--snippet-length", type=int, default=150, help="Snippet length")
     query_parser.add_argument("--json", action="store_true", help="Output as JSON")
     query_parser.set_defaults(func=cmd_query)

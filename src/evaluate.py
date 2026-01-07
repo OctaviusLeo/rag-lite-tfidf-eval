@@ -359,7 +359,7 @@ def evaluate_retrieval(
 
     # Load evaluation queries
     queries = []
-    with open(eval_file, encoding='utf-8') as f:
+    with open(eval_file, encoding="utf-8") as f:
         for line in f:
             queries.append(json.loads(line))
 
@@ -371,8 +371,8 @@ def evaluate_retrieval(
     recall_scores = []
 
     for item in queries:
-        query = item['query']
-        relevant_pattern = item['relevant_contains']
+        query = item["query"]
+        relevant_pattern = item["relevant_contains"]
 
         # Retrieve results
         hits = retrieve_hybrid(index, query, k, method=method)
@@ -401,32 +401,33 @@ def evaluate_retrieval(
         precision_scores.append(precision)
         recall_scores.append(recall)
 
-        all_results.append({
-            'query': query,
-            'relevant_contains': relevant_pattern,
-            'mrr@k': mrr,
-            'ndcg@k': ndcg,
-            'precision@k': precision,
-            'recall@k': recall,
-            'num_relevant_found': len(relevant_positions),
-        })
+        all_results.append(
+            {
+                "query": query,
+                "relevant_contains": relevant_pattern,
+                "mrr@k": mrr,
+                "ndcg@k": ndcg,
+                "precision@k": precision,
+                "recall@k": recall,
+                "num_relevant_found": len(relevant_positions),
+            }
+        )
 
     # Save detailed results if requested
     if output_file:
         os.makedirs(os.path.dirname(output_file) or ".", exist_ok=True)
-        with open(output_file, 'w', encoding='utf-8') as f:
+        with open(output_file, "w", encoding="utf-8") as f:
             for result in all_results:
-                f.write(json.dumps(result) + '\n')
+                f.write(json.dumps(result) + "\n")
 
     # Return aggregate metrics
     return {
-        'mrr': sum(mrr_scores) / len(mrr_scores) if mrr_scores else 0.0,
-        'ndcg': sum(ndcg_scores) / len(ndcg_scores) if ndcg_scores else 0.0,
-        'precision': sum(precision_scores) / len(precision_scores) if precision_scores else 0.0,
-        'recall': sum(recall_scores) / len(recall_scores) if recall_scores else 0.0,
+        "mrr": sum(mrr_scores) / len(mrr_scores) if mrr_scores else 0.0,
+        "ndcg": sum(ndcg_scores) / len(ndcg_scores) if ndcg_scores else 0.0,
+        "precision": sum(precision_scores) / len(precision_scores) if precision_scores else 0.0,
+        "recall": sum(recall_scores) / len(recall_scores) if recall_scores else 0.0,
     }
 
 
 if __name__ == "__main__":
     main()
-
