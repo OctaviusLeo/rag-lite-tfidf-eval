@@ -8,7 +8,7 @@
 
 RAG‑Lite is a compact, production‑style retrieval stack: multiple retrieval methods (TF‑IDF, BM25, dense embeddings), optional cross‑encoder reranking, chunking with stable citations, and an evaluation + benchmarking harness.
 
-This repo is optimized for demonstrating real engineering trade‑offs (quality vs latency vs memory) with reproducible metrics.
+This repo is optimized for demonstrating real engineering trade‑offs (quality vs. latency vs. memory) with reproducible metrics.
 
 ## Table of Contents
 
@@ -471,4 +471,4 @@ See [.github/workflows/ci.yml](.github/workflows/ci.yml) for the complete CI con
 </details>
 
 # Future Plans
-- AG-Lite as a real product
+- AG-Lite as a real product (shipping + retrieval/eval work look like software).
